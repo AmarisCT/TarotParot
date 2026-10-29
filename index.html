@@ -1128,12 +1128,13 @@ const S = { spread: "three", question: "", bday: "", reversals: true, deck: null
 
 /* ---------- entropy: everything that shapes the shuffle ---------- */
 const Ent = {
-  nums: [], touch: 0, motion: 0, scroll: 0, keys: 0, lastKey: 0, path: 0, v: 0, motionSeen: false,
+  nums: [], touch: 0, motion: 0, moves: 0, scroll: 0, keys: 0, lastKey: 0, path: 0, v: 0, motionSeen: false, lastAcc: null, lastOri: null,
   add(...a) { for (const x of a) { const n = +x; if (Number.isFinite(n) && this.nums.length < 90000) this.nums.push(n); } },
-  reset() { this.nums = []; this.touch = 0; this.motion = 0; this.scroll = 0; this.keys = 0; this.lastKey = 0; this.path = 0; this.v = 0; this.motionSeen = false; }
+  reset() { this.nums = []; this.touch = 0; this.motion = 0; this.moves = 0; this.lastAcc = null; this.lastOri = null; this.scroll = 0; this.keys = 0; this.lastKey = 0; this.path = 0; this.v = 0; this.motionSeen = false; }
 };
 const TARGET = 240;
-const score = () => Ent.touch + Ent.motion * .5 + Ent.scroll * 2 + Ent.keys * 3;
+// The ring only fills from what you do on the shuffle screen: swirls, real shakes, scrolls and key taps there.
+const score = () => Ent.touch + Ent.moves * .5 + Ent.scroll * 2;
 
 const enc = new TextEncoder();
 function cat(...arrs) { let len = 0; for (const a of arrs) len += a.length; const out = new Uint8Array(len); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length; } return out; }
@@ -1243,7 +1244,7 @@ let lastP = null, raf = 0, meterQueued = false;
 function updateMeters() {
   meterQueued = false;
   $("#mTouch").textContent = fmt(Ent.touch);
-  $("#mMotion").textContent = fmt(IS_TOUCH ? Ent.motion : Ent.scroll);
+  $("#mMotion").textContent = fmt(IS_TOUCH ? Ent.moves : Ent.scroll);
   $("#mKeys").textContent = fmt(Ent.keys);
   const pct = Math.min(1, score() / TARGET);
   ring.style.strokeDashoffset = String(100 - pct * 100);
@@ -1347,12 +1348,20 @@ function onMotion(e) {
   const a = e.accelerationIncludingGravity || e.acceleration || {}, r = e.rotationRate || {};
   if (a.x == null && r.alpha == null) return;
   Ent.add(a.x, a.y, a.z, r.alpha, r.beta, r.gamma, e.timeStamp); Ent.motion++; Ent.motionSeen = true;
-  const acc = e.acceleration || {};
-  const mag = Math.hypot(acc.x || 0, acc.y || 0, acc.z || 0);
-  if (mag > 1.2) Ent.v = Math.min(40, Ent.v + mag);
-  queueMeters();
+  const acc = e.acceleration;
+  let mag;
+  if (acc && acc.x != null) mag = Math.hypot(acc.x, acc.y, acc.z);
+  else { const L = Ent.lastAcc; mag = L ? Math.hypot((a.x || 0) - L.x, (a.y || 0) - L.y, (a.z || 0) - L.z) : 0; Ent.lastAcc = { x: a.x || 0, y: a.y || 0, z: a.z || 0 }; }
+  const spin = Math.hypot(r.alpha || 0, r.beta || 0, r.gamma || 0);
+  if (mag > 1.5 || spin > 45) { Ent.moves++; Ent.v = Math.min(40, Ent.v + Math.min(8, mag + spin / 60)); queueMeters(); }
 }
-function onOrient(e) { if (e.alpha == null && e.beta == null) return; Ent.add(e.alpha, e.beta, e.gamma, e.timeStamp); Ent.motion++; Ent.motionSeen = true; queueMeters(); }
+function onOrient(e) {
+  if (e.alpha == null && e.beta == null) return;
+  Ent.add(e.alpha, e.beta, e.gamma, e.timeStamp); Ent.motion++; Ent.motionSeen = true;
+  const L = Ent.lastOri, b = e.beta || 0, g = e.gamma || 0;
+  if (!L) { Ent.lastOri = { b, g }; return; }
+  if (Math.abs(b - L.b) + Math.abs(g - L.g) > 4) { Ent.moves++; Ent.lastOri = { b, g }; queueMeters(); }
+}
 function startMotion() { window.addEventListener("devicemotion", onMotion); window.addEventListener("deviceorientation", onOrient); }
 function stopMotion() { window.removeEventListener("devicemotion", onMotion); window.removeEventListener("deviceorientation", onOrient); }
 $("#motionBtn").addEventListener("click", async () => {
@@ -1365,8 +1374,11 @@ $("#motionBtn").addEventListener("click", async () => {
   } catch (e) { $("#motionBtn").hidden = true; note.textContent = "Motion isn't available here. Your touch is plenty."; }
 });
 function enterShuffle() {
-  Ent.touch = 0; Ent.motion = 0; Ent.scroll = 0; Ent.path = 0; Ent.v = 6;
+  Ent.touch = 0; Ent.motion = 0; Ent.moves = 0; Ent.lastAcc = null; Ent.lastOri = null; Ent.scroll = 0; Ent.path = 0; Ent.v = 6;
   const btn = $("#shuffleDone"); delete btn.dataset.busy;
+  ring.style.transition = "none"; ring.style.strokeDashoffset = "100";
+  void ring.getBoundingClientRect();
+  requestAnimationFrame(() => { ring.style.transition = ""; });
   const needsPerm = IS_TOUCH && typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function";
   $("#motionBtn").hidden = !needsPerm;
   $("#motionNote").textContent = "";
