@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TarotParot</title>
+<meta name="description" content="TarotParot: tarot readings shuffled by your touch or mouse, your device's motion and the moment you ask. A little birdie told me.">
+<meta name="theme-color" content="#4a2330">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TarotParot">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* TarotParot: a fortune-teller's watercolor collage. One centered column floating over a living painted sky. */
+  --plum: #2b1822;
+  --wine: #6d2b31;
+  --rust: #a8582f;
+  --ochre: #c99c50;
+  --sage: #9aa27a;
+  --parch: #f3e8cf;
+  --parch-dim: #dccaa4;
+  --ink: #2a1a1f;
+  --gold: #d9b45e;
+  --gold-hi: #f6e0a0;
+  --glass: rgba(44, 20, 30, .5);
+  --glass-line: rgba(236, 204, 124, .36);
+  --display: "IM Fell English", "Iowan Old Style", Georgia, serif;
+  --sc: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --body: "EB Garamond", "Iowan Old Style", Georgia, serif;
+  --r: 16px;
+  --back: linear-gradient(160deg, #6a2c38, #3a1e2a);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: #6a3a3c radial-gradient(70% 50% at 20% 15%, #b8603a 0%, transparent 70%), radial-gradient(60% 45% at 85% 40%, #6f8db0 0%, transparent 70%), radial-gradient(70% 50% at 30% 80%, #7f8a3c 0%, transparent 70%), radial-gradient(60% 50% at 80% 90%, #7a2a35 0%, transparent 70%) fixed;
+  color: var(--parch);
+  font-family: var(--body);
+  font-size: 18px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold-hi); outline-offset: 3px; }
+
+/* ---------- living background ---------- */
+#sky { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; display: block; }
+.lace, .grain { position: fixed; pointer-events: none; z-index: 1; }
+.lace {
+  inset: -20%;
+  opacity: .09;
+  mix-blend-mode: soft-light;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cg fill='none' stroke='%23fff3d6' stroke-width='1.2'%3E%3Ccircle cx='90' cy='90' r='38'/%3E%3Ccircle cx='90' cy='90' r='29' stroke-dasharray='2 5'/%3E%3Ccircle cx='90' cy='90' r='12'/%3E%3Ccircle cx='0' cy='0' r='38'/%3E%3Ccircle cx='180' cy='0' r='38'/%3E%3Ccircle cx='0' cy='180' r='38'/%3E%3Ccircle cx='180' cy='180' r='38'/%3E%3C/g%3E%3Cg fill='%23fff3d6'%3E%3Ccircle cx='90' cy='42' r='3'/%3E%3Ccircle cx='90' cy='138' r='3'/%3E%3Ccircle cx='42' cy='90' r='3'/%3E%3Ccircle cx='138' cy='90' r='3'/%3E%3Ccircle cx='56' cy='56' r='2'/%3E%3Ccircle cx='124' cy='56' r='2'/%3E%3Ccircle cx='56' cy='124' r='2'/%3E%3Ccircle cx='124' cy='124' r='2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 180px;
+  animation: drift 160s linear infinite;
+}
+.grain {
+  inset: 0;
+  opacity: .22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .4 0 0 0 0 .3 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes drift { to { transform: translate(180px, 180px); } }
+
+/* ---------- frame ---------- */
+#app {
+  position: relative;
+  z-index: 2;
+  max-width: 760px;
+  margin: 0 auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  padding: calc(env(safe-area-inset-top) + 12px) max(16px, env(safe-area-inset-right)) calc(env(safe-area-inset-bottom) + 22px) max(16px, env(safe-area-inset-left));
+}
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  background: none; border: 0; padding: 4px 0; cursor: pointer;
+  font-family: var(--display); font-size: 27px; letter-spacing: .01em;
+  color: var(--gold-hi); text-shadow: 0 1px 10px rgba(30, 10, 15, .65);
+}
+.brand svg { filter: drop-shadow(0 2px 4px rgba(30, 10, 15, .5)); }
+.navbtn {
+  font-family: var(--sc); font-size: 16px; letter-spacing: .05em;
+  background: var(--glass); border: 1px solid var(--glass-line); border-radius: 999px;
+  padding: 7px 15px; cursor: pointer; color: var(--parch);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.navbtn .count { color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+
+.view { display: none; flex-direction: column; gap: 18px; }
+.view.active { display: flex; animation: rise .45s ease both; }
+@keyframes rise { from { opacity: .35; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+h1, h2 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; text-shadow: 0 2px 18px rgba(30, 10, 15, .7); }
+h1 { font-size: clamp(36px, 9vw, 58px); line-height: 1.04; }
+h2 { font-size: clamp(28px, 6.5vw, 40px); line-height: 1.1; }
+.eyebrow { font-family: var(--sc); letter-spacing: .08em; color: var(--gold-hi); font-size: 15px; margin: 0; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.lede { max-width: 33em; margin: 0; font-size: 19px; color: #f6ecd6; text-shadow: 0 1px 12px rgba(30, 10, 15, .85); }
+.tagline { font-family: var(--display); font-style: italic; font-size: 21px; color: var(--gold-hi); margin: 0; text-shadow: 0 1px 10px rgba(30, 10, 15, .8); }
+.instr { margin: 0; color: #f6ecd6; text-shadow: 0 1px 10px rgba(30, 10, 15, .85); max-width: 32em; }
+.hero { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+
+.panel {
+  background: var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: var(--r);
+  padding: 20px;
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+  backdrop-filter: blur(20px) saturate(1.35);
+  box-shadow: 0 10px 40px rgba(20, 8, 12, .35);
+}
+
+/* ---------- ask form ---------- */
+form.panel { display: flex; flex-direction: column; gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 8px; }
+label, legend, summary { font-family: var(--sc); letter-spacing: .05em; color: var(--gold-hi); font-size: 16px; }
+textarea, input[type="date"] {
+  width: 100%; font: inherit; color: var(--ink);
+  background: var(--parch); border: 1px solid var(--parch-dim); border-radius: 10px;
+  padding: 12px 14px; resize: vertical; min-height: 50px;
+}
+textarea::placeholder { color: #8a7660; font-style: italic; }
+.spreads { border: 0; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.spreads legend { margin-bottom: 8px; padding: 0; }
+.spread-opt { position: relative; display: block; }
+.spread-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.spread-opt span {
+  display: flex; flex-direction: column; gap: 6px; height: 100%;
+  padding: 12px 10px; border: 1px solid var(--glass-line); border-radius: 12px; cursor: pointer;
+  background: rgba(255, 240, 210, .04); transition: background .2s, border-color .2s;
+}
+.spread-opt b { font-family: var(--sc); font-weight: 400; font-size: 17px; color: var(--parch); line-height: 1.15; }
+.spread-opt small { font-size: 15px; color: #e6d6b2; line-height: 1.3; }
+.spread-opt input:checked + span { border-color: var(--gold); background: rgba(217, 180, 94, .17); box-shadow: inset 0 0 0 1px var(--gold); }
+.spread-opt input:focus-visible + span { outline: 2px solid var(--gold-hi); outline-offset: 2px; }
+.minis { display: flex; gap: 3px; height: 22px; align-items: flex-end; }
+.minis i { display: block; width: 12px; height: 20px; border-radius: 2px; background: var(--back) center/cover; border: 1px solid rgba(246, 224, 160, .6); }
+.minis.many i { width: 7px; height: 13px; }
+details.personal { border-top: 1px solid var(--glass-line); padding-top: 14px; }
+details.personal summary { cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+details.personal summary::-webkit-details-marker { display: none; }
+details.personal summary::before { content: "+"; font-family: var(--body); font-size: 20px; width: 16px; }
+details.personal[open] summary::before { content: "−"; }
+.personal-body { display: flex; flex-direction: column; gap: 12px; padding-top: 12px; }
+.bday { border-top: 1px solid var(--glass-line); padding-top: 16px; }
+.bday-view { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; }
+.bday-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.bday-label { margin: 0; font-family: var(--sc); letter-spacing: .05em; color: var(--gold-hi); font-size: 16px; }
+.bday-value { margin: 0; font-family: var(--display); font-size: 22px; line-height: 1.2; }
+.bday-edit { display: flex; flex-direction: column; gap: 10px; }
+.row.left { justify-content: flex-start; }
+.err { margin: 0; min-height: 0; color: #f4bf96; font-size: 16px; }
+.err:empty { display: none; }
+.check { display: flex; align-items: center; gap: 10px; font-family: var(--body); letter-spacing: 0; color: var(--parch); font-size: 17px; }
+.check input { width: 20px; height: 20px; accent-color: var(--gold); }
+.hint { font-size: 15px; color: #e6d6b2; margin: 0; }
+.birthcard { font-family: var(--display); font-style: italic; color: var(--gold-hi); margin: 0; min-height: 1.5em; }
+
+.btn {
+  font-family: var(--sc); font-size: 18px; letter-spacing: .06em;
+  border-radius: 999px; padding: 14px 24px; border: 1px solid var(--gold); cursor: pointer;
+  transition: transform .15s, filter .2s, background .2s;
+}
+.btn:active { transform: scale(.98); }
+.btn.primary {
+  background: linear-gradient(180deg, #f6dc94, #cf9f48 55%, #a87a32);
+  color: #2a1712;
+  box-shadow: 0 6px 22px rgba(160, 110, 40, .35), inset 0 1px 0 rgba(255, 255, 255, .55);
+}
+.btn.primary:disabled { filter: saturate(.25) brightness(.78); cursor: default; }
+.btn.ghost { background: var(--glass); color: var(--parch); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
+.btn.small { font-size: 15px; padding: 9px 16px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.install { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+
+/* ---------- shuffle ---------- */
+.center { align-items: center; text-align: center; }
+.deck-zone {
+  position: relative; width: min(80vw, 330px); aspect-ratio: 1; margin: 6px auto;
+  display: grid; place-items: center; border-radius: 50%; touch-action: none; cursor: grab;
+  -webkit-user-select: none; user-select: none;
+}
+.deck-zone:active { cursor: grabbing; }
+.deck-zone .ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring .track { fill: none; stroke: rgba(246, 224, 160, .2); stroke-width: 2; }
+.ring .fill { fill: none; stroke: var(--gold-hi); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset .2s; filter: drop-shadow(0 0 6px rgba(246, 224, 160, .7)); }
+.deck { position: relative; width: 40%; aspect-ratio: 300 / 520; pointer-events: none; }
+.deck i {
+  position: absolute; inset: 0; border-radius: 8px; background: var(--back) center/cover;
+  box-shadow: 0 6px 16px rgba(10, 4, 6, .45); will-change: transform; transform-origin: 50% 60%;
+}
+.deck-zone { overflow: visible; }
+.meters { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; font-family: var(--sc); letter-spacing: .04em; font-size: 15px; color: var(--parch); text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.meters b { font-family: var(--body); font-weight: 600; color: var(--gold-hi); font-variant-numeric: tabular-nums; font-size: 18px; }
+.note-line { min-height: 1.4em; margin: 0; font-size: 16px; color: #efe2c4; font-style: italic; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+
+/* ---------- cut ---------- */
+.piles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: end; padding: 26px 4px 10px; }
+.pile { background: none; border: 0; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 0; }
+.pile .stack { position: relative; width: 100%; max-width: 120px; aspect-ratio: 300 / 520; transition: transform .35s ease; }
+.pile .stack i { position: absolute; inset: 0; border-radius: 7px; background: var(--back) center/cover; box-shadow: 0 3px 10px rgba(10, 4, 6, .45); }
+.pile span { font-family: var(--sc); font-size: 15px; letter-spacing: .04em; color: var(--parch); text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.pile:hover .stack, .pile:focus-visible .stack { transform: translateY(-8px); }
+.pile.chosen .stack { transform: translateY(-28px) scale(1.06); }
+.pile.faded { opacity: .35; transition: opacity .3s; }
+
+/* ---------- pick ---------- */
+.pick-slots { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.pick-slots i {
+  width: 30px; aspect-ratio: 300 / 520; border-radius: 4px; border: 1px dashed rgba(246, 224, 160, .55);
+  display: grid; place-items: center; font-style: normal; font-family: var(--sc); font-size: 13px; color: var(--gold-hi);
+  background: rgba(40, 20, 29, .4);
+}
+.pick-slots i.on { background: var(--back) center/cover; border-style: solid; color: transparent; }
+.fan-wrap { overflow-x: auto; overflow-y: hidden; margin: 0 -16px; padding: 46px 0 34px; scrollbar-width: thin; scrollbar-color: rgba(246, 224, 160, .4) transparent; }
+.fan { display: flex; width: max-content; padding: 0 46px; }
+.fc {
+  flex: none; width: 66px; aspect-ratio: 300 / 520; margin-right: -40px; padding: 0; border: 0; border-radius: 6px; cursor: pointer;
+  background: var(--back) center/cover; box-shadow: -3px 3px 9px rgba(10, 4, 6, .45);
+  transform: translateY(var(--y, 0)) rotate(var(--a, 0deg)); transition: transform .22s ease, opacity .45s ease;
+}
+.fc:hover, .fc:focus-visible { transform: translateY(calc(var(--y, 0px) - 18px)) rotate(var(--a, 0deg)); }
+.fc.taken { opacity: 0; transform: translateY(-140px) rotate(0deg) scale(1.2); pointer-events: none; }
+.fc.peck { animation: peck .5s ease; }
+@keyframes peck { 40% { transform: translateY(calc(var(--y, 0px) - 26px)) rotate(var(--a, 0deg)); } }
+.scroll-hint { text-align: center; font-size: 15px; font-style: italic; color: #efe2c4; margin: -16px 0 0; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+
+/* ---------- reading ---------- */
+.q-echo { display: flex; flex-direction: column; gap: 4px; }
+.q-echo .eyebrow { font-size: 14px; }
+.q-echo blockquote { margin: 0; font-family: var(--display); font-style: italic; font-size: clamp(22px, 5vw, 30px); line-height: 1.2; text-wrap: balance; text-shadow: 0 2px 14px rgba(30, 10, 15, .8); }
+.spread { position: relative; width: 100%; margin: 4px auto 0; }
+.spread.single { display: flex; justify-content: center; }
+.spread.single .slot { width: min(62vw, 250px); }
+.spread.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 600px; }
+.spread.celtic { aspect-ratio: 1 / 1.24; max-width: 540px; }
+.spread.celtic .slot { position: absolute; width: 17%; transform: translate(-50%, -50%); }
+.spread.celtic .slot.cross { transform: translate(-50%, -50%) rotate(90deg); z-index: 2; }
+.slot { display: flex; flex-direction: column; align-items: center; gap: 8px; animation: deal .55s cubic-bezier(.2, .7, .2, 1) both; animation-delay: calc(var(--i, 0) * 90ms); }
+@keyframes deal { from { opacity: .2; transform: translateY(26px) rotate(-4deg); } }
+.spread.celtic .slot { animation: none; }
+.slot .pos { font-family: var(--sc); font-size: 15px; letter-spacing: .04em; color: var(--gold-hi); text-align: center; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.badge {
+  position: absolute; top: -9px; left: -9px; z-index: 3; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; font-family: var(--sc); font-size: 13px;
+  background: var(--gold); color: var(--ink); box-shadow: 0 2px 6px rgba(0, 0, 0, .4);
+}
+.cross .badge { transform: rotate(-90deg); top: auto; bottom: -9px; }
+.tcard { position: relative; width: 100%; aspect-ratio: 300 / 520; perspective: 1100px; border: 0; padding: 0; background: none; cursor: pointer; display: block; }
+.tcard .inner, .tcard .back, .tcard .face { display: block; }
+.tcard .inner { position: relative; width: 100%; height: 100%; transition: transform .9s cubic-bezier(.3, .7, .2, 1); transform-style: preserve-3d; }
+.tcard.flipped .inner { transform: rotateY(180deg); }
+.tcard .back, .tcard .face { position: absolute; inset: 0; -webkit-backface-visibility: hidden; backface-visibility: hidden; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 26px rgba(10, 4, 6, .5); }
+.tcard .back { background: var(--back) center/cover; }
+.tcard:not(.flipped) .back { animation: glow 2.6s ease-in-out infinite; }
+@keyframes glow { 50% { box-shadow: 0 10px 26px rgba(10, 4, 6, .5), 0 0 22px rgba(246, 224, 160, .45); } }
+.tcard .face { transform: rotateY(180deg); background: #efe2c2; }
+.tcard .face svg { width: 100%; height: 100%; display: block; }
+.tcard.rev .face svg { transform: rotate(180deg); }
+
+.notes { display: flex; flex-direction: column; gap: 12px; }
+.note { display: grid; grid-template-columns: 34px 1fr; gap: 2px 12px; scroll-margin: 90px; }
+.note .num { font-family: var(--display); font-size: 30px; line-height: 1; color: var(--gold); text-align: center; }
+.note .pos { margin: 0; font-family: var(--sc); font-size: 15px; letter-spacing: .05em; color: var(--gold-hi); }
+.note h3 { margin: 2px 0 0; font-family: var(--display); font-weight: 400; font-size: 25px; line-height: 1.15; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.note .kw { margin: 2px 0 6px; font-style: italic; color: #ecdcb8; font-size: 17px; }
+.note p { margin: 0; }
+.note .lens { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--glass-line); color: #f6ecd6; }
+.note .lens b { font-family: var(--sc); font-weight: 400; letter-spacing: .04em; color: var(--gold-hi); }
+.note.veiled { opacity: .78; }
+.note.veiled .wait { font-style: italic; color: #e6d6b2; margin: 4px 0 0; }
+.chip { font-family: var(--sc); font-size: 13px; letter-spacing: .05em; border: 1px solid #d98a5c; color: #f4bf96; border-radius: 999px; padding: 1px 9px; }
+
+.summary h2 { font-size: 30px; margin-bottom: 8px; }
+.summary p { margin: 0 0 12px; max-width: 36em; }
+.summary p:last-child { margin-bottom: 0; }
+.parrot-says { font-family: var(--display); font-style: italic; font-size: 21px; color: var(--gold-hi); }
+.entropy summary { cursor: pointer; font-size: 18px; }
+.entropy dl { display: grid; grid-template-columns: minmax(110px, auto) 1fr; gap: 8px 16px; margin: 16px 0 12px; }
+.entropy dt { font-family: var(--sc); font-size: 15px; letter-spacing: .04em; color: var(--gold-hi); }
+.entropy dd { margin: 0; font-variant-numeric: tabular-nums; }
+.fp { margin: 0 0 8px; font-family: var(--sc); letter-spacing: .05em; color: var(--gold-hi); }
+.fp code { font-family: var(--body); font-variant-numeric: tabular-nums; letter-spacing: .12em; color: var(--parch); font-size: 18px; }
+.saved-line { text-align: center; margin: 0; font-style: italic; color: #efe2c4; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+
+/* ---------- journal ---------- */
+.jlist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.jitem { display: flex; gap: 12px; align-items: flex-start; padding: 16px; }
+.jopen { flex: 1; text-align: left; background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.jopen time { font-family: var(--sc); font-size: 14px; letter-spacing: .05em; color: var(--gold-hi); }
+.jopen b { font-family: var(--display); font-weight: 400; font-size: 21px; line-height: 1.2; }
+.jopen .jcards { font-size: 16px; color: #e6d6b2; }
+.jdel { font-family: var(--sc); font-size: 14px; background: none; border: 1px solid var(--glass-line); border-radius: 999px; padding: 5px 12px; cursor: pointer; color: #e6d6b2; white-space: nowrap; }
+.jdel.armed { border-color: #d98a5c; color: #f4bf96; }
+.empty { text-align: center; }
+
+.foot { margin-top: auto; padding-top: 18px; text-align: center; font-family: var(--sc); font-size: 14px; letter-spacing: .05em; color: #efe2c4; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.foot a { color: var(--gold-hi); }
+.toast {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 22px); z-index: 10;
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s;
+  background: var(--parch); color: var(--ink); font-family: var(--sc); letter-spacing: .04em; padding: 10px 18px; border-radius: 999px; box-shadow: 0 8px 26px rgba(0, 0, 0, .35);
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (min-width: 640px) {
+  .fc { width: 84px; margin-right: -50px; }
+  .spread.three { gap: 22px; }
+}
+@media (max-width: 520px) {
+  .spreads { grid-template-columns: 1fr; gap: 8px; }
+  .spread-opt span { display: grid; grid-template-columns: 74px 1fr; grid-template-rows: auto auto; column-gap: 12px; row-gap: 0; align-items: center; padding: 10px 14px; }
+  .spread-opt .minis { grid-row: span 2; justify-content: center; }
+  .spread-opt b, .spread-opt small { grid-column: 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lace { animation: none; }
+  .view.active, .slot { animation: none; }
+  .tcard .inner { transition: none; }
+  .tcard:not(.flipped) .back { animation: none; }
+}
+
+</style>
+</head>
+<body>
+<canvas id="sky" aria-hidden="true"></canvas>
+<div class="lace" aria-hidden="true"></div>
+<div class="grain" aria-hidden="true"></div>
+
+<main id="app">
+  <header class="top">
+    <button class="brand" type="button" data-go="home" aria-label="TarotParot home"><span id="mark"></span>TarotParot</button>
+    <button class="navbtn" type="button" data-go="journal">Journal <span class="count" id="jcount"></span></button>
+  </header>
+
+  <!-- 1. Ask -->
+  <section class="view active" id="v-home" aria-labelledby="h-home">
+    <div class="hero">
+      <p class="eyebrow" id="skyLine">Tonight's sky</p>
+      <h1 id="h-home">A little birdie told me.</h1>
+      <p class="lede" id="lede">Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.</p>
+    </div>
+    <form class="panel" id="askForm" autocomplete="off">
+      <div class="field">
+        <label for="q">Your question</label>
+        <textarea id="q" rows="2" maxlength="280" placeholder="What do I need to know about…"></textarea>
+      </div>
+      <fieldset class="spreads">
+        <legend>Choose a spread</legend>
+        <label class="spread-opt"><input type="radio" name="spread" value="single"><span><i class="minis"><i></i></i><b>Single Pull</b><small>One card for right now</small></span></label>
+        <label class="spread-opt"><input type="radio" name="spread" value="three" checked><span><i class="minis"><i></i><i></i><i></i></i><b>Past · Present · Future</b><small>Three cards</small></span></label>
+        <label class="spread-opt"><input type="radio" name="spread" value="celtic"><span><i class="minis many"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i><b>Celtic Cross</b><small>Ten cards, the full story</small></span></label>
+      </fieldset>
+      <div class="bday" id="bdayBox">
+        <div class="bday-view" id="bdayView">
+          <div class="bday-text">
+            <p class="bday-label">Your birthday</p>
+            <p class="bday-value" id="bdayValue">Not added yet</p>
+            <p class="birthcard" id="birthCard"></p>
+          </div>
+          <div class="row left">
+            <button class="btn ghost small" type="button" id="bdayEdit">Add your birthday</button>
+            <button class="btn ghost small" type="button" id="bdayRemove" hidden>Remove</button>
+          </div>
+        </div>
+        <div class="bday-edit" id="bdayEditBox" hidden>
+          <label for="bday">Your birthday</label>
+          <input type="date" id="bday" max="2100-12-31">
+          <p class="err" id="bdayErr" role="alert"></p>
+          <div class="row left">
+            <button class="btn primary small" type="button" id="bdaySave">Save birthday</button>
+            <button class="btn ghost small" type="button" id="bdayCancel">Cancel</button>
+          </div>
+          <p class="hint">Your birthday finds your birth card and goes into every shuffle. It stays on this device, and you can change or remove it any time.</p>
+        </div>
+      </div>
+      <label class="check" for="rev"><input type="checkbox" id="rev" checked> Include reversed cards</label>
+      <button class="btn primary" type="submit">Begin the shuffle</button>
+    </form>
+    <div class="install">
+      <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParot to your home screen</button>
+      <p class="hint" id="iosHint" hidden>To keep TarotParot on your home screen, tap Share, then Add to Home Screen.</p>
+    </div>
+  </section>
+
+  <!-- 2. Shuffle -->
+  <section class="view center" id="v-shuffle" aria-labelledby="h-shuffle">
+    <h2 id="h-shuffle">Shuffle the deck</h2>
+    <p class="instr" id="shuffleInstr">Swirl your finger over the cards. Shake your phone too, if you like. Stop when it feels right.</p>
+    <div class="deck-zone" id="deckZone" tabindex="0" role="application" aria-label="Deck. Swirl over it to shuffle, or press any keys.">
+      <svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="track" cx="50" cy="50" r="48"/><circle class="fill" id="ringFill" cx="50" cy="50" r="48" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
+      <div class="deck" id="deck"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div class="meters" aria-live="off">
+      <span><span id="lTouch">Touch</span> <b id="mTouch">0</b></span>
+      <span><span id="lMotion">Motion</span> <b id="mMotion">0</b></span>
+      <span>Typing <b id="mKeys">0</b></span>
+    </div>
+    <button class="btn ghost small" type="button" id="motionBtn" hidden>Let the deck feel your phone move</button>
+    <p class="note-line" id="motionNote"></p>
+    <button class="btn primary" type="button" id="shuffleDone" disabled>Keep swirling</button>
+  </section>
+
+  <!-- 3. Cut -->
+  <section class="view center" id="v-cut" aria-labelledby="h-cut">
+    <h2 id="h-cut">Cut the deck</h2>
+    <p class="instr">Tap the pile that calls to you. It goes on top.</p>
+    <div class="piles" id="piles"></div>
+  </section>
+
+  <!-- 4. Pick -->
+  <section class="view center" id="v-pick" aria-labelledby="h-pick">
+    <h2 id="h-pick">Choose your cards</h2>
+    <p class="instr" id="pickInstr">Pick three cards.</p>
+    <div class="pick-slots" id="pickSlots" aria-live="polite"></div>
+    <div class="fan-wrap" id="fanWrap"><div class="fan" id="fan"></div></div>
+    <p class="scroll-hint">Slide along the spread to see all 78 cards</p>
+    <div class="row"><button class="btn ghost" type="button" id="parrotPick">Let the parrot pick</button></div>
+  </section>
+
+  <!-- 5. Reading -->
+  <section class="view" id="v-read" aria-labelledby="h-read">
+    <div class="q-echo">
+      <p class="eyebrow" id="readMeta"></p>
+      <h2 class="sr" id="h-read">Your reading</h2>
+      <blockquote id="qEcho"></blockquote>
+    </div>
+    <div class="spread" id="spread"></div>
+    <div class="row"><button class="btn ghost" type="button" id="revealAll">Turn all the cards</button></div>
+    <div class="notes" id="notes"></div>
+    <div id="after" hidden>
+      <div class="notes">
+        <article class="panel summary" id="summary"></article>
+        <details class="panel entropy" id="entropy"></details>
+        <p class="saved-line" id="savedLine"></p>
+        <div class="row">
+          <button class="btn ghost" type="button" id="copyBtn">Copy reading</button>
+          <button class="btn primary" type="button" data-go="home">New reading</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Journal -->
+  <section class="view" id="v-journal" aria-labelledby="h-journal">
+    <h2 id="h-journal">Your journal</h2>
+    <ul class="jlist" id="jlist"></ul>
+  </section>
+
+  <footer class="foot">TarotParot · an <a href="https://amarisct.github.io/Amaris/">amaris ct</a> project</footer>
+</main>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ===== The deck: 78 cards, meanings written for TarotParot ===== */
+const SUITS = {
+  wands:     { name: "Wands",     element: "Fire",  domain: "drive, creativity and ambition" },
+  cups:      { name: "Cups",      element: "Water", domain: "feelings and relationships" },
+  swords:    { name: "Swords",    element: "Air",   domain: "thoughts, words and conflict" },
+  pentacles: { name: "Pentacles", element: "Earth", domain: "money, work, body and home" }
+};
+const RANKS = ["Ace","Two","Three","Four","Five","Six","Seven","Eight","Nine","Ten","Page","Knight","Queen","King"];
+const RANK_PLURAL = ["Aces","Twos","Threes","Fours","Fives","Sixes","Sevens","Eights","Nines","Tens","Pages","Knights","Queens","Kings"];
+const RANK_THEME = {1:"new beginnings",2:"balance and choices",3:"growth and collaboration",4:"stability and structure",5:"conflict and change",6:"harmony and healing",7:"reflection and assessment",8:"movement and mastery",9:"nearing completion",10:"endings and culmination"};
+
+const MAJ = [
+ ["The Fool","new beginnings · faith · spontaneity","recklessness · hesitation · fear of change","Something new is opening. Step toward it with curiosity and trust, even before you can see the whole road.","Either fear is keeping you at the edge, or you are about to jump without looking. Be brave, but stay awake."],
+ ["The Magician","willpower · skill · manifestation","scattered energy · manipulation · untapped talent","You already hold every tool you need. Focus your will and act; this is a moment where intention turns into results.","Your power is leaking in too many directions, or someone is using clever words to steer you. Gather your focus and check motives, yours included."],
+ ["The High Priestess","intuition · mystery · inner knowing","secrets · disconnection · ignoring your gut","The answer is quieter than you expect. Get still, listen to your intuition, and trust what you know without being able to prove it.","You are tuning out your inner voice, or something is being kept hidden. Make space for silence before you decide."],
+ ["The Empress","abundance · nurture · creativity","smothering · creative block · self-neglect","Growth comes through care. Nurture what you love, including your body and your creative work, and let it flourish at its own pace.","You may be giving so much that you have run dry, or holding on too tightly. Tend to yourself first."],
+ ["The Emperor","structure · authority · stability","rigidity · control · lack of discipline","Build the framework. Clear rules, steady leadership and a plan will turn this situation into something solid.","Control has tipped into rigidity, or there is no structure at all. Look at who holds power here and whether it is used well."],
+ ["The Hierophant","tradition · guidance · shared beliefs","rebellion · questioning norms · your own path","There is wisdom in the established way. A mentor, a tradition or a trusted institution can guide you now.","The usual rules do not fit you here. It may be time to question convention and find your own way of doing things."],
+ ["The Lovers","love · alignment · meaningful choice","disharmony · misaligned values · avoidance","A bond or a choice asks for your whole heart. Choose what truly aligns with your values, and the connection deepens.","Something is out of balance, in a relationship or within yourself. Be honest about what you actually want."],
+ ["The Chariot","determination · momentum · victory","lack of direction · opposition · lost control","Pull your opposing impulses into one direction and drive. Willpower and focus carry you forward to a win.","You are being pulled two ways, or pushing too hard against resistance. Take back the reins before you speed up."],
+ ["Strength","courage · compassion · inner strength","self-doubt · low energy · raw emotion","Gentle strength wins this one. Patience, compassion and quiet confidence can tame what force never could.","Self-doubt is louder than usual. Be kind to yourself and rebuild your confidence one small act at a time."],
+ ["The Hermit","solitude · reflection · inner guidance","isolation · loneliness · withdrawal","Step back from the noise. Time alone with your thoughts will light the next stretch of the path.","Solitude has turned into isolation. Reach out; you do not have to figure this out entirely by yourself."],
+ ["Wheel of Fortune","cycles · fate · turning point","resisting change · bad luck · repeating patterns","The wheel is turning. Change is coming whether you plan for it or not, and it is likely moving in your favor.","A cycle is repeating, or luck feels stuck. Notice the pattern; you can step out of it."],
+ ["Justice","fairness · truth · cause and effect","unfairness · dishonesty · avoiding accountability","Truth and fairness prevail. Decisions made now carry consequences, so act with integrity and expect a just result.","Something here is not fair, or someone is avoiding responsibility. Be honest, first with yourself."],
+ ["The Hanged Man","pause · surrender · new perspective","stalling · resistance · indecision","Pause. Letting go of the need to act right now will show you the situation from a completely new angle.","You are stalling, or resisting a sacrifice that needs to happen. Waiting longer will not make the choice easier."],
+ ["Death","endings · transformation · transition","resisting change · stagnation · fear of endings","Something is ending so something else can begin. Rarely literal, this card marks a deep and needed transformation.","You are holding on to what is already over. Releasing it frees the energy you need for what comes next."],
+ ["Temperance","balance · patience · moderation","excess · imbalance · impatience","Blend, don't force. Patience and a measured middle path will bring the healing and harmony you are after.","Things are out of balance: too much of one thing, too little of another. Slow down and recalibrate."],
+ ["The Devil","attachment · temptation · shadow self","release · breaking free · reclaiming power","Look at what has a hold on you: a habit, a fear, a relationship. The chains are looser than they seem.","You are ready to break free. Naming the pattern is the first step out of it."],
+ ["The Tower","sudden change · upheaval · revelation","averted disaster · fear of change · delayed upheaval","A sudden shake-up clears what was built on shaky ground. It is unsettling, but it reveals the truth and makes room to rebuild.","You may be bracing against a change that needs to happen. Letting it come gently is easier than waiting for it to crash."],
+ ["The Star","hope · renewal · inspiration","discouragement · lost faith · disconnection","After the storm comes calm. Hope, healing and quiet inspiration are flowing back to you.","You have lost sight of your hope for a moment. It is not gone; reconnect with what once lit you up."],
+ ["The Moon","intuition · illusion · the unconscious","clarity returning · released fear · lifting confusion","Not everything is as it appears. Move carefully, trust your instincts, and let dreams and feelings guide you through the uncertainty.","The fog is lifting. Fears that felt huge are shrinking, and the truth is coming into view."],
+ ["The Sun","joy · success · vitality","passing clouds · dimmed optimism · overconfidence","Warmth, success and pure joy. This is one of the brightest cards in the deck: things are working out.","The light is still there, just behind a cloud. Reconnect with simple joys, and do not let doubt or ego dim them."],
+ ["Judgement","awakening · reckoning · a calling","self-doubt · ignoring the call · harsh self-judgment","You are being called to rise. Reflect honestly on the past, forgive it, and answer the call toward who you are becoming.","You are judging yourself too harshly, or ignoring an inner calling. Listen; it is still there."],
+ ["The World","completion · wholeness · accomplishment","unfinished business · shortcuts · seeking closure","A cycle is complete. Celebrate how far you have come; you are whole and ready for the next adventure.","You are close, but something is left unfinished. Tie up the loose ends before you move on."]
+];
+
+const MIN = {
+ wands: [
+  ["inspiration · new venture · spark","delays · lost motivation · false start","A spark of inspiration arrives. Act on it while the fire is fresh.","The spark is there but stalled. Find what is blocking your momentum before you push."],
+  ["planning · future vision · decisions","fear of the unknown · playing safe · poor planning","You hold the world in your hands. Plan boldly and decide where to go next.","Staying where it is safe may be costing you. Make the plan, then take the first step."],
+  ["expansion · foresight · progress","obstacles · delays · frustration","Your efforts are starting to pay off. Look ahead; your ships are coming in.","Progress is slower than you hoped. Adjust your expectations, not your vision."],
+  ["celebration · home · harmony","transition · unsettled home · lack of support","A moment to celebrate: home, community and a milestone reached.","Home or a group feels unsettled. Find your own sense of stability while things shift."],
+  ["conflict · competition · tension","avoiding conflict · resolution · inner conflict","Clashing egos and competing goals. Healthy competition can sharpen you if you keep it fair.","The fight is winding down, or you are avoiding one that needs to happen. Look for common ground."],
+  ["victory · recognition · confidence","ego · fall from grace · going unnoticed","Public success and well-earned recognition. Ride proudly.","Recognition is not arriving, or pride is getting in the way. Your worth does not depend on applause."],
+  ["standing your ground · defense · perseverance","overwhelm · giving up · feeling attacked","Hold your position. You have the high ground; defend what matters.","You are worn down from defending. Choose which battles are worth it."],
+  ["speed · movement · swift news","delays · frustration · slowing down","Things are moving fast. News, travel or progress arrives quickly.","Momentum has stalled. Wait for the right moment instead of forcing it."],
+  ["resilience · persistence · the last stretch","exhaustion · defensiveness · stubbornness","You are tired, but nearly there. One more push.","Your guard is up so high it is wearing you out. Rest, and let someone help."],
+  ["burden · responsibility · hard work","release · delegating · burnout","You are carrying too much. The finish is close, but lighten the load.","It is time to put some of this down. Delegate, or say no."],
+  ["curiosity · enthusiasm · new ideas","distraction · no direction · hasty starts","An exciting idea or message arrives. Explore it with a beginner's enthusiasm.","Lots of ideas, little follow-through. Pick one and nurture it."],
+  ["action · adventure · passion","impulsiveness · haste · scattered energy","Charge ahead with energy and courage; adventure calls.","Rushing in could backfire. Channel the fire before it burns out."],
+  ["confidence · warmth · determination","jealousy · insecurity · demanding","Radiate confidence. Your warmth and determination draw people in.","Insecurity is dimming your light. Reclaim your confidence without needing to prove it."],
+  ["vision · leadership · boldness","arrogance · impulsive leadership · impossible standards","Lead with vision. You see the big picture and can inspire others to follow.","Big plans need patience and humility. Do not let ego drive."]
+ ],
+ cups: [
+  ["new love · emotional opening · compassion","bottled feelings · emotional block · emptiness","Your heart is opening. New love, friendship or creative feeling pours in.","Feelings are bottled up. Let yourself feel before you try to fix anything."],
+  ["partnership · mutual attraction · connection","imbalance · broken communication · tension","A meaningful connection built on mutual respect and attraction.","Something in a partnership is off balance. Talk it through honestly."],
+  ["friendship · celebration · community","gossip · overindulgence · isolation","Celebrate with the people who lift you up.","A social circle feels strained, or the party has gone too far. Check in with your real friends."],
+  ["apathy · contemplation · missed offers","renewed interest · new awareness · acceptance","You may be so focused on what is missing that you are overlooking what is being offered.","You are coming out of a slump and seeing new possibilities. Say yes to one of them."],
+  ["grief · loss · regret","acceptance · moving on · forgiveness","Something was lost, and it hurts. But not everything spilled; look at what remains.","You are beginning to heal and move forward. Forgiveness, of yourself too, is near."],
+  ["nostalgia · childhood · innocence","stuck in the past · moving forward · independence","Sweet memories, old friends, or a simple kindness from the past.","Living in the past is holding you back. Honor it, then turn toward the future."],
+  ["choices · fantasy · illusion","clarity · decision · reality check","Many options shimmer before you, but not all are real. Look closely before you choose.","The fog of options is clearing. You know what you actually want."],
+  ["walking away · seeking more · disillusionment","fear of change · drifting · staying too long","It is time to leave something that no longer fulfills you, even if it looks fine from outside.","You know you need to move on, but you are hesitating, or running from what you should face."],
+  ["contentment · wishes granted · satisfaction","smugness · dissatisfaction · materialism","The wish card. Contentment and satisfaction are yours; enjoy them.","What you wished for did not bring the joy you expected. Look for what truly fulfills you."],
+  ["harmony · family · lasting happiness","disconnection · broken harmony · misaligned values","Emotional fulfillment and harmony at home. Love that lasts.","The picture-perfect family or relationship has cracks. Focus on real connection, not appearances."],
+  ["creative opportunity · intuitive message · curiosity","emotional immaturity · creative block · escapism","A sweet surprise, a creative idea, or an intuitive nudge. Stay open.","Feelings are running young and raw. Ground them before you act."],
+  ["romance · charm · following the heart","moodiness · unrealistic expectations · jealousy","An invitation or romantic offer arrives. Follow your heart, gracefully.","Romance or idealism is clouding judgment. Check the reality behind the charm."],
+  ["compassion · emotional security · intuition","insecurity · codependence · overwhelm","Lead with compassion and trust your intuition. You hold space for others beautifully.","You are absorbing everyone else's feelings. Protect your own well-being."],
+  ["emotional balance · diplomacy · calm","emotional manipulation · moodiness · coldness","Stay calm and kind. Emotional maturity lets you steer through choppy water.","Emotions are being suppressed or used as leverage. Find your balance."]
+ ],
+ swords: [
+  ["clarity · breakthrough · truth","confusion · miscommunication · clouded judgment","A breakthrough: clear thinking cuts straight to the truth.","Your thinking is clouded. Get the facts before you decide."],
+  ["stalemate · difficult choice · avoidance","indecision · information overload · lesser of two evils","You are avoiding a decision by refusing to look. Take off the blindfold.","Too much input, not enough clarity. Pick the option that is most honest."],
+  ["heartbreak · sorrow · painful truth","recovery · forgiveness · releasing pain","A painful truth or heartbreak. Let yourself grieve; it is how healing starts.","The sharpest pain is passing. You are beginning to release it."],
+  ["rest · recovery · contemplation","restlessness · burnout · a forced pause","Rest. Recovery is productive right now.","You are running on empty. Stop before your body makes you."],
+  ["conflict · winning at a cost · tension","reconciliation · making amends · moving past conflict","A win that costs more than it is worth. Ask whether this fight is really yours.","It is time to make peace and move past an old argument."],
+  ["transition · moving on · calmer waters","unfinished business · resisting change · turbulence","You are moving toward calmer waters. Leave the trouble behind.","You are trying to leave, but something keeps pulling you back. Resolve it first."],
+  ["strategy · stealth · cunning","confession · getting caught · conscience","Strategy is needed, but watch for deception, yours or someone else's.","Secrets are surfacing. Come clean, or notice who is being less than honest."],
+  ["feeling trapped · restriction · limiting beliefs","release · new perspective · freedom","You feel trapped, but the bindings are looser than they look. Your mind is the cage.","You are freeing yourself from limiting beliefs. The way out is clearer now."],
+  ["anxiety · worry · sleepless nights","hope · reaching out · releasing worry","Worry is keeping you up. The fear in your head is bigger than the reality.","The worst of the anxiety is passing. Talk about it and it will shrink further."],
+  ["painful ending · rock bottom · betrayal","recovery · regeneration · resisting the end","A hard ending. It is over, and the only way from here is up.","You are past the worst. Recovery has begun, so stop reopening the wound."],
+  ["curiosity · new ideas · vigilance","gossip · all talk · scattered thinking","A sharp mind and eager questions. Gather information and stay alert.","Words are flying without substance. Think before you speak."],
+  ["ambition · drive · fast thinking","restlessness · recklessness · burnout","Charge toward your goal with sharp focus and speed.","Moving too fast without a plan. Slow down before you crash."],
+  ["clear boundaries · honesty · independence","coldness · bitterness · harsh words","Clear-eyed and honest. Set boundaries and speak your truth plainly.","Honesty has turned harsh. Soften the edge without losing the truth."],
+  ["intellect · authority · truth","manipulation · cruelty · misuse of power","Think it through and decide with fairness and logic.","Logic is being used as a weapon. Watch for misuse of power."]
+ ],
+ pentacles: [
+  ["new opportunity · prosperity · manifestation","missed chance · poor planning · scarcity mindset","A real, tangible opportunity in money, work or health. Plant the seed.","An opportunity may slip by. Check your planning and your follow-through."],
+  ["balance · adaptability · juggling priorities","overwhelm · disorganization · overcommitment","You are juggling a lot, and doing it well. Stay flexible.","Too many balls in the air. Drop the ones that do not matter."],
+  ["teamwork · collaboration · craft","disharmony · poor teamwork · low effort","Collaboration and skill come together. Your work is being noticed.","The team is not aligned. Clarify roles and expectations."],
+  ["security · saving · control","greed · letting go · financial worry","You are holding tightly to what you have. Security is good; just do not let it become a cage.","Loosen your grip on money, things or control. Generosity opens doors."],
+  ["hardship · loss · feeling left out","recovery · help arriving · the end of hardship","Times are tight or lonely. Help is closer than you think; look for the lit window.","The hard stretch is ending. Accept the help that is offered."],
+  ["generosity · giving and receiving · fairness","debt · strings attached · one-sided giving","Give and receive with an open hand. Balance and generosity flow.","Watch for help with strings attached, or giving that leaves you empty."],
+  ["patience · long-term view · assessment","impatience · poor returns · wasted effort","Your efforts are growing. Pause, assess, and be patient with the harvest.","The results are not matching the effort. Rethink where you invest your energy."],
+  ["skill · dedication · mastery","perfectionism · lack of focus · cutting corners","Put your head down and practice. Mastery comes through steady work.","Perfectionism or distraction is slowing you down. Focus on the craft, not the flaws."],
+  ["self-sufficiency · luxury · independence","overworking · dependence · hollow success","You have earned this comfort. Enjoy the independence you built.","Success feels hollow, or you depend on others more than you would like. Rebalance."],
+  ["legacy · wealth · family","family conflict · financial loss · short-term thinking","Lasting wealth and legacy. Build something that will outlast you.","Money or family matters need attention. Think about the long term."],
+  ["ambition · a new skill · diligence","procrastination · stalled progress · missed lessons","A new chance to learn and grow. Study, plan and commit.","Plans are not turning into action. Start small, but start."],
+  ["routine · reliability · hard work","stagnation · boredom · laziness","Steady, methodical progress. Slow and reliable wins.","Routine has become a rut. Shake things up just enough."],
+  ["nurturing · practicality · comfort","self-neglect · work-home imbalance · smothering","Practical care: create comfort and security for yourself and others.","You are caring for everyone but yourself. Restore the balance."],
+  ["abundance · security · leadership","greed · stubbornness · obsession with status","Steady success and material security. Lead with generosity.","Material focus has gone too far. Remember what the wealth is for."]
+ ]
+};
+
+const DECK = [];
+MAJ.forEach((m, i) => DECK.push({ id: i, arcana: "major", num: i, name: m[0], up: m[1], rv: m[2], upM: m[3], rvM: m[4] }));
+["wands","cups","swords","pentacles"].forEach(s => MIN[s].forEach((m, r) => DECK.push({
+  id: DECK.length, arcana: "minor", suit: s, rank: r + 1,
+  name: RANKS[r] + " of " + SUITS[s].name, up: m[0], rv: m[1], upM: m[2], rvM: m[3]
+})));
+
+/* ===== Reading the question: topic, kind of question, people mentioned ===== */
+const TOPICS = [
+  { key: "love", tag: "Love", label: "love", words: ["love","loves","relationship","relationships","partner","boyfriend","girlfriend","husband","wife","crush","dating","marriage","marry","married","ex","romance","romantic","soulmate","soul mate","breakup","break up","broke up","divorce","engaged","engagement","fiance","fiancé","fiancee","kiss","move on","text me","feelings for","like me","get back together","situationship","cheating","cheat"] },
+  { key: "career", tag: "Work", label: "your work", words: ["job","jobs","work","working","career","boss","manager","coworker","coworkers","colleague","colleagues","promotion","interview","hire","hired","hiring","business","company","client","clients","offer","position","resign","quit","startup","employer","fired","layoff","laid off","team","office"] },
+  { key: "money", tag: "Money", label: "money", words: ["money","finance","finances","financial","debt","debts","rent","salary","raise","pay","paid","income","invest","investment","investing","savings","save","afford","loan","mortgage","budget","rich","wealth","bills","stocks","crypto","price"] },
+  { key: "health", tag: "Health", label: "your health and energy", words: ["health","healthy","sick","illness","ill","body","energy","tired","sleep","heal","healing","wellness","wellbeing","well-being","diet","exercise","fitness","stress","stressed","burnout","burned out","recovery","pain","doctor","surgery"] },
+  { key: "family", tag: "Family", label: "family", words: ["family","mom","mother","mum","dad","father","parent","parents","sister","brother","sibling","siblings","son","daughter","child","children","kid","kids","baby","pregnant","pregnancy","grandma","grandmother","grandpa","grandfather","cousin","aunt","uncle","in-laws","in laws"] },
+  { key: "friends", tag: "Friendship", label: "friendship", words: ["friend","friends","friendship","bestie","best friend","social","group chat"] },
+  { key: "home", tag: "Home & travel", label: "a move or a journey", words: ["move","moving","relocate","relocating","apartment","house","home","travel","traveling","travelling","trip","abroad","city","country","vacation","visa","lease"] },
+  { key: "study", tag: "Studies", label: "your studies", words: ["school","college","university","uni","exam","exams","test","tests","class","classes","degree","study","studying","studies","grade","grades","application","admission","admissions","scholarship","course","graduate","graduation","thesis"] },
+  { key: "create", tag: "Creative work", label: "your creative work", words: ["art","artist","create","creative","creativity","writing","write","writer","book","novel","music","song","songs","album","design","designer","project","brand","website","app","launch","channel","content","youtube","podcast","painting","film"] },
+  { key: "self", tag: "Your path", label: "your path", words: ["purpose","path","meaning","spiritual","spirituality","soul","myself","self","growth","grow","become","journey","intuition","calling","life","destiny","happy","happiness","future","healing journey"] }
+];
+const LENS = {
+  love: { major: ["This is a meaningful chapter in your love life, bigger than a passing feeling.","A deeper lesson about love wants facing before things can move."], wands: ["Attraction and chemistry are strong, and passion is pushing things forward.","The spark is there but restless. Watch for impatience and mixed signals."], cups: ["Feelings are real and flowing. This card favors an open heart.","Emotions are blocked or unspoken. Honesty about feelings is needed."], swords: ["Clear, honest communication matters more than romance right now.","Overthinking or sharp words are getting in the way of closeness."], pentacles: ["Love grows through steady, practical commitment and simply showing up.","Routine, money or time pressure is weighing on the bond."] },
+  career: { major: ["This is a turning point in your work life, not just a routine shift.","A bigger lesson about your work is surfacing. Don't rush past it."], wands: ["Ambition and initiative are rewarded. Go after what you want.","Burnout or scattered effort is slowing progress. Focus your drive."], cups: ["Meaningful work and good relationships with the people around you matter most here.","You may feel emotionally checked out at work. Notice what's missing."], swords: ["Clear thinking, strategy and honest conversations move things forward.","Tension, miscommunication or stress at work needs to be addressed."], pentacles: ["Steady effort, skill and practical results are building something real.","Pay, stability or progress feels stuck. Review the practical side."] },
+  money: { major: ["A significant shift in your finances is underway.","A deeper pattern around money is asking for your attention."], wands: ["Bold moves and new ventures can bring money in.","Impulsive spending or rushed decisions could cost you."], cups: ["There is ease and generosity around money. You have more than you think.","Emotional spending or money worries are clouding things."], swords: ["Make clear-headed, informed decisions, and read the fine print.","Anxiety or confusion about money. Get the facts before you act."], pentacles: ["Material security and steady growth are favored.","Watch for losses, debt or overspending, and tighten the plan."] },
+  health: { major: ["Your wellbeing is part of a bigger turning point. Listen to it.","Your body and mind may be asking you to slow down and pay attention."], wands: ["Energy and vitality are strong. Movement and action help.","Energy is running low or scattered. Pace yourself."], cups: ["Emotional wellbeing supports everything else. Rest in good company.","Stress you haven't expressed may be showing up in how you feel."], swords: ["Mental clarity helps, and good information leads to good choices.","Worry and overthinking are draining you. Give your mind a rest."], pentacles: ["Steady routines, sleep and nourishment are your foundation.","Basic self-care has slipped. Return to simple routines."] },
+  family: { major: ["This is an important chapter in your family story.","An old family pattern is ready to be seen and changed."], wands: ["There is lively energy at home, and someone's enthusiasm can lift everyone.","Clashing tempers or restlessness at home. Let things cool down."], cups: ["Warmth, care and emotional closeness with family.","Hurt feelings or distance in the family need gentle attention."], swords: ["An honest conversation can clear the air.","Arguments or harsh words are causing strain. Choose words carefully."], pentacles: ["Stability, security and practical support at home.","Money or responsibilities are creating pressure at home."] },
+  friends: { major: ["This friendship plays a meaningful part in your story.","Something deeper in this friendship needs to be faced."], wands: ["Fun, adventure and shared enthusiasm keep this bond alive.","Competition or impatience is creating friction."], cups: ["Genuine affection and loyalty. This connection nourishes you.","Feelings have been hurt or left unsaid. Reach out."], swords: ["Honesty will strengthen this friendship, even if it's uncomfortable.","Gossip, misunderstanding or cutting words need repair."], pentacles: ["A steady, reliable friendship you can count on.","The give and take feels uneven. Check the balance."] },
+  home: { major: ["This move or journey marks a real turning point.","Something unfinished may be holding you in place."], wands: ["Adventure calls, and momentum favors going.","Plans may be rushed or delayed. Double-check the details."], cups: ["Follow where your heart feels at home.","Nostalgia or mixed feelings are making it hard to leave."], swords: ["Weigh the facts clearly. A logical plan smooths the way.","Stress and second-guessing. Get clear before you decide."], pentacles: ["The practical foundations are solid, and the numbers can work.","Costs or logistics need a closer look."] },
+  study: { major: ["This learning is shaping who you are becoming.","A deeper lesson sits beneath the coursework. Slow down."], wands: ["Enthusiasm and drive carry you. Dive in.","Procrastination or scattered focus is the main obstacle."], cups: ["Study what you love; passion makes it stick.","Motivation is low. Reconnect with why this matters to you."], swords: ["Sharp thinking and focus favor exams and decisions.","Nerves or overthinking. Trust your preparation."], pentacles: ["Steady practice and discipline pay off.","Your routine needs structure. Small daily steps help."] },
+  create: { major: ["This creative work is tied to your larger purpose.","A creative block is holding a lesson. Listen to it."], wands: ["Inspiration is hot. Start it, launch it, make it.","Lots of ideas, little follow-through. Pick one."], cups: ["Make what moves you; feeling is your fuel.","Self-doubt or a dry spell. Be gentle with the process."], swords: ["Sharpen the idea. Editing and a clear vision win.","Harsh self-criticism is getting in the way."], pentacles: ["Craft and consistency turn this into something lasting, even profitable.","Practical limits like time or money need a plan."] },
+  self: { major: ["You are in a significant season of growth.","An inner lesson keeps repeating until it is learned."], wands: ["Follow what lights you up; passion points the way.","Restlessness is a signal. Slow down enough to hear what you want."], cups: ["Trust your heart and intuition as your compass.","Reconnect with your feelings. You have been running on empty."], swords: ["Clarity about what's true for you is arriving.","Your inner critic is too loud. Question its story."], pentacles: ["Ground your growth in daily practice and in your body.","You have been neglecting the basics that keep you steady."] }
+};
+// cards that lean strongly one way for yes-or-no questions (by deck id)
+const YES_LEAN = { 19: 2, 17: 1, 21: 1, 1: 1, 3: 1, 6: 1, 7: 1, 10: 1, 22: 1, 27: 1, 36: 1, 37: 1, 38: 1, 44: 2, 45: 1, 64: 1 };
+const NO_LEAN = { 16: 2, 15: 1, 59: 2, 52: 1, 57: 1, 58: 1, 68: 1, 40: 1, 54: 1 };
+const _qa = {};
+function analyzeQuestion(q) {
+  q = (q || "").trim();
+  if (_qa[q]) return _qa[q];
+  const t = q.toLowerCase().replace(/[’']/g, "'");
+  let best = null, bestN = 0;
+  for (const tp of TOPICS) {
+    let n = 0;
+    for (const w of tp.words) { const m = t.match(new RegExp("(^|[^a-z])" + w.replace(/[-]/g, "\\-") + "(?![a-z])", "g")); if (m) n += m.length; }
+    if (n > bestN) { best = tp; bestN = n; }
+  }
+  let type = "open";
+  if (/^\s*(when|how (long|soon))\b/.test(t)) type = "when";
+  else if (/^\s*(should|will|is|are|am|does|do|did|can|could|would|has|have|was|were|shall|won't|isn't|am i)\b/.test(t) || /\bshould i\b|\bwill (he|she|they|i|it|we)\b/.test(t)) type = "yesno";
+  else if (/^\s*how\b/.test(t)) type = "how";
+  else if (/^\s*why\b/.test(t)) type = "why";
+  const pm = t.match(/\bmy (best friend|partner|boyfriend|girlfriend|husband|wife|crush|ex|boss|manager|friend|mom|mum|mother|dad|father|sister|brother|son|daughter|child|coworker|colleague|team|client|landlord|teacher)\b/);
+  const person = pm ? "your " + pm[1] : (/\b(he|she|him|her|they|them|his)\b/.test(t) ? "the person you're asking about" : null);
+  return (_qa[q] = { topic: best, type, person });
+}
+function lensFor(topic, card, rev) {
+  if (!topic) return "";
+  const L = LENS[topic.key][card.arcana === "major" ? "major" : card.suit];
+  return L[rev ? 1 : 0];
+}
+function yesNo(cards) {
+  let s = 0, wait = 0, unclear = 0;
+  cards.forEach(c => {
+    s += c.rev ? -1 : 1;
+    if (YES_LEAN[c.id]) s += c.rev ? 0 : YES_LEAN[c.id];
+    if (NO_LEAN[c.id]) s -= c.rev ? 0 : NO_LEAN[c.id];
+    if (c.id === 12 || c.id === 53 || c.id === 70) wait++;
+    if (c.id === 18 || c.id === 51) unclear++;
+  });
+  if (unclear && Math.abs(s) <= 1) return { lean: "unclear", text: "The answer is hazy for now. Something important isn't visible yet, so give it time and ask again when you know more.", short: "the answer is still hazy" };
+  if (wait && Math.abs(s) <= 2) return { lean: "wait", text: "The cards say not yet. A pause is part of the answer; this needs more time before it can move.", short: "not yet, give it time" };
+  if (s >= 2) return { lean: "yes", text: "The cards lean toward yes.", short: "it's leaning yes" };
+  if (s <= -2) return { lean: "no", text: "The cards lean toward no, or not in the way you're picturing it.", short: "it's leaning no, for now" };
+  return { lean: "maybe", text: "The answer isn't fixed. It depends on choices you are still making, so the cards below show what tips it.", short: "it could go either way, and it's up to you" };
+}
+function whenText(cards) {
+  if (cards.some(c => c.id === 29 && !c.rev)) return "Timing looks quick: the Eight of Wands says things move fast, likely within days.";
+  if (cards.some(c => (c.id === 12 || c.id === 53) && !c.rev)) return "Timing involves a pause. Things move after a period of rest or waiting, not right away.";
+  const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 }; let majors = 0;
+  cards.forEach(c => { if (c.suit) counts[c.suit]++; else majors++; });
+  if (majors > cards.length / 2) return "Timing is tied to a bigger shift. It happens when you are ready, not on a set clock.";
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  return { wands: "Timing looks fairly quick, within days to a few weeks, once you take action.", swords: "Timing looks like weeks, once a decision is made or a conversation happens.", cups: "Timing looks like a few months, as feelings settle and things unfold naturally.", pentacles: "Timing is slow and steady, likely a season or longer, built step by step." }[top];
+}
+
+/* ===== Original card art for TarotParot, drawn as SVG ===== */
+const ART = (() => {
+  const INK = "#4a2f17";
+  const f = n => Math.round(n * 10) / 10;
+  const P = a => a.map(p => f(p[0]) + "," + f(p[1])).join(" ");
+  let N = 0;
+  const ROMAN = ["0","I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI"];
+  const TINT = { major:[.62,.40,.47], wands:[.80,.46,.24], cups:[.40,.52,.68], swords:[.50,.58,.62], pentacles:[.52,.54,.28] };
+  const TINT2 = { major:[.85,.64,.30], wands:[.88,.60,.44], cups:[.48,.32,.52], swords:[.62,.68,.48], pentacles:[.84,.64,.30] };
+  const FONT = "IM Fell English SC, Iowan Old Style, Georgia, serif";
+
+  function gold(u) {
+    return `<linearGradient id="g${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7a5620"/><stop offset=".3" stop-color="#ead08a"/><stop offset=".48" stop-color="#b88a3a"/><stop offset=".64" stop-color="#fbeab4"/><stop offset=".82" stop-color="#c19745"/><stop offset="1" stop-color="#6c4a1b"/></linearGradient>`;
+  }
+  function wash(id, seed, rgb, freq, gain = 2.2, bias = -.85) {
+    return `<filter id="${id}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency="${freq} ${f(freq * 1.5 * 1000) / 1000}" numOctaves="4" seed="${seed}"/><feColorMatrix type="matrix" values="0 0 0 0 ${rgb[0]} 0 0 0 0 ${rgb[1]} 0 0 0 0 ${rgb[2]} ${gain} 0 0 0 ${bias}"/><feComposite in2="SourceAlpha" operator="in"/></filter>`;
+  }
+  function grain(id, seed) {
+    return `<filter id="${id}" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="2" seed="${seed}"/><feColorMatrix type="matrix" values="0 0 0 0 .4 0 0 0 0 .28 0 0 0 0 .16 -.9 0 0 0 .5"/><feComposite in2="SourceAlpha" operator="in"/></filter>`;
+  }
+  function bleed(id, seed) {
+    return `<filter id="${id}" x="-40%" y="-40%" width="180%" height="180%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".03" numOctaves="3" seed="${seed}" result="t"/><feDisplacementMap in="SourceGraphic" in2="t" scale="30" xChannelSelector="R" yChannelSelector="G" result="d"/><feGaussianBlur in="d" stdDeviation="4"/></filter>`;
+  }
+  const ctx = u => ({ u, G: `url(#g${u})`, S: `url(#s${u})`, B: `url(#b${u})` });
+
+  /* ---------- drawing kit ---------- */
+  function star8(c, x, y, R, r2, ri, fill) {
+    const p = [];
+    for (let i = 0; i < 16; i++) {
+      const a = i * Math.PI / 8 - Math.PI / 2;
+      const rr = i % 2 ? ri : (i % 4 === 0 ? R : r2);
+      p.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]);
+    }
+    return `<polygon points="${P(p)}" fill="${fill || c.G}" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>`;
+  }
+  function starN(c, x, y, R, ri, n, rot = 0, fill) {
+    const p = [];
+    for (let i = 0; i < n * 2; i++) {
+      const a = i * Math.PI / n - Math.PI / 2 + rot;
+      const rr = i % 2 ? ri : R;
+      p.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]);
+    }
+    return `<polygon points="${P(p)}" fill="${fill || c.G}" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>`;
+  }
+  const blob = (c, x, y, rx, ry, col, op = .55) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${col}" opacity="${op}" filter="${c.B}"/>`;
+  function sun(c, x, y, r, o = {}) {
+    const n = o.n || 16, fill = o.fill || c.G;
+    let s = "";
+    for (let i = 0; i < n; i++) {
+      const a = i * 2 * Math.PI / n, R = r * (i % 2 ? (o.short || 1.5) : (o.long || 1.85)), w = Math.PI / n * .9;
+      const b1 = [x + Math.cos(a - w) * r * .92, y + Math.sin(a - w) * r * .92];
+      const b2 = [x + Math.cos(a + w) * r * .92, y + Math.sin(a + w) * r * .92];
+      const tip = [x + Math.cos(a + .14) * R, y + Math.sin(a + .14) * R];
+      const m = (r + R) / 2;
+      const c1 = [x + Math.cos(a - .1) * m, y + Math.sin(a - .1) * m];
+      const c2 = [x + Math.cos(a + w * .9) * m, y + Math.sin(a + w * .9) * m];
+      s += `<path d="M${f(b1[0])} ${f(b1[1])}Q${f(c1[0])} ${f(c1[1])} ${f(tip[0])} ${f(tip[1])}Q${f(c2[0])} ${f(c2[1])} ${f(b2[0])} ${f(b2[1])}Z" fill="${fill}" stroke="${INK}" stroke-width=".8" stroke-linejoin="round"/>`;
+    }
+    s += `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}" stroke="${INK}" stroke-width="1"/>`;
+    if (o.spiral !== false) {
+      let d = "";
+      for (let t = 0; t <= 4.2 * Math.PI; t += .25) { const rr = r * .06 + r * .055 * t; d += (t ? "L" : "M") + f(x + Math.cos(t) * rr) + " " + f(y + Math.sin(t) * rr); }
+      s += `<path d="${d}" fill="none" stroke="${INK}" stroke-width="${f(Math.max(.8, r * .045))}" stroke-linecap="round"/>`;
+    }
+    return s;
+  }
+  function crescent(c, x, y, r, k = .72, fill) {
+    return `<path d="M${x} ${y - r}A${r} ${r} 0 1 1 ${x} ${y + r}A${f(r * k)} ${r} 0 1 0 ${x} ${y - r}Z" fill="${fill || c.G}" stroke="${INK}" stroke-width="1"/>`;
+  }
+  function cup(c, x, y, s) { // y = rim
+    const d = `M${f(x - s)} ${y}C${f(x - s)} ${f(y + s * .9)} ${f(x - s * .35)} ${f(y + s * 1.15)} ${f(x - s * .12)} ${f(y + s * 1.2)}L${f(x - s * .1)} ${f(y + s * 1.6)}C${f(x - s * .12)} ${f(y + s * 1.78)} ${f(x - s * .5)} ${f(y + s * 1.82)} ${f(x - s * .55)} ${f(y + s * 1.98)}L${f(x + s * .55)} ${f(y + s * 1.98)}C${f(x + s * .5)} ${f(y + s * 1.82)} ${f(x + s * .12)} ${f(y + s * 1.78)} ${f(x + s * .1)} ${f(y + s * 1.6)}L${f(x + s * .12)} ${f(y + s * 1.2)}C${f(x + s * .35)} ${f(y + s * 1.15)} ${f(x + s)} ${f(y + s * .9)} ${f(x + s)} ${y}Z`;
+    return `<path d="${d}" fill="${c.G}" stroke="${INK}" stroke-width="1.2" stroke-linejoin="round"/><ellipse cx="${x}" cy="${y}" rx="${s}" ry="${f(s * .2)}" fill="#6e4a22" stroke="${INK}" stroke-width="1.2"/><ellipse cx="${x}" cy="${f(y + s * 1.4)}" rx="${f(s * .18)}" ry="${f(s * .08)}" fill="${c.G}" stroke="${INK}" stroke-width=".8"/>`;
+  }
+  function wand(c, x, y, L, ang = 0, w = 12) {
+    let s = `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(ang)})">`;
+    s += `<rect x="${-w / 2}" y="${-L / 2}" width="${w}" height="${L}" rx="${w / 2}" fill="#8b5a2e" stroke="${INK}" stroke-width="1"/>`;
+    s += `<rect x="${f(-w / 2 + w * .18)}" y="${f(-L / 2 + 4)}" width="${f(w * .26)}" height="${L - 8}" rx="2" fill="#c08a58" opacity=".7"/>`;
+    for (const k of [-.3, .06, .36]) s += `<rect x="${-w / 2 - 1}" y="${f(L * k)}" width="${w + 2}" height="${f(Math.max(2, w * .3))}" fill="${c.G}" stroke="${INK}" stroke-width=".5"/>`;
+    for (const [k, sd] of [[-.4, 1], [-.14, -1], [.2, 1]]) {
+      const lx = sd * (w / 2 + w * .45), ly = f(L * k);
+      s += `<ellipse cx="${f(lx)}" cy="${ly}" rx="${f(w * .62)}" ry="${f(w * .28)}" transform="rotate(${sd * -35} ${f(lx)} ${ly})" fill="#7f8f4a" stroke="${INK}" stroke-width=".5"/>`;
+    }
+    s += `<circle cx="0" cy="${-L / 2}" r="${f(w * .45)}" fill="${c.G}" stroke="${INK}" stroke-width=".6"/>`;
+    return s + "</g>";
+  }
+  function sword(c, x, y, L, ang = 0, w = 14) {
+    const gy = -L / 2 + L * .72;
+    let s = `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(ang)})">`;
+    s += `<path d="M0 ${f(-L / 2)}L${w / 2} ${f(-L / 2 + w * 1.3)}L${w / 2} ${f(gy)}L${-w / 2} ${f(gy)}L${-w / 2} ${f(-L / 2 + w * 1.3)}Z" fill="${c.S}" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>`;
+    s += `<line x1="0" y1="${f(-L / 2 + w * 1.6)}" x2="0" y2="${f(gy - 4)}" stroke="#7b8590" stroke-width="1"/>`;
+    s += `<rect x="${f(-w * 1.9)}" y="${f(gy)}" width="${f(w * 3.8)}" height="${f(w * .55)}" rx="${f(w * .27)}" fill="${c.G}" stroke="${INK}" stroke-width="1"/>`;
+    s += `<rect x="${f(-w * .32)}" y="${f(gy + w * .55)}" width="${f(w * .64)}" height="${f(L / 2 - gy - w * 1.05)}" fill="#5a3a22" stroke="${INK}" stroke-width=".8"/>`;
+    s += `<circle cx="0" cy="${f(L / 2 - w * .45)}" r="${f(w * .5)}" fill="${c.G}" stroke="${INK}" stroke-width="1"/>`;
+    return s + "</g>";
+  }
+  function pentacle(c, x, y, r) {
+    const p = [];
+    for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i * 4 * Math.PI / 5; p.push([x + Math.cos(a) * r * .68, y + Math.sin(a) * r * .68]); }
+    return `<circle cx="${x}" cy="${y}" r="${r}" fill="${c.G}" stroke="${INK}" stroke-width="1.2"/><circle cx="${x}" cy="${y}" r="${f(r * .8)}" fill="none" stroke="${INK}" stroke-width=".9"/><polygon points="${P(p)}" fill="none" stroke="${INK}" stroke-width="${f(Math.max(1, r * .05))}" stroke-linejoin="round"/>`;
+  }
+  function rose(c, x, y, r, col = "#f6efe2") {
+    let s = "";
+    for (let i = 0; i < 5; i++) { const a = i * 2 * Math.PI / 5 - Math.PI / 2; s += `<circle cx="${f(x + Math.cos(a) * r * .5)}" cy="${f(y + Math.sin(a) * r * .5)}" r="${f(r * .55)}" fill="${col}" stroke="${INK}" stroke-width=".8"/>`; }
+    s += `<circle cx="${x}" cy="${y}" r="${f(r * .45)}" fill="${col}" stroke="${INK}" stroke-width=".8"/>`;
+    let d = "";
+    for (let t = 0; t <= 3.4 * Math.PI; t += .3) { const rr = r * .05 + r * .03 * t; d += (t ? "L" : "M") + f(x + Math.cos(t) * rr) + " " + f(y + Math.sin(t) * rr); }
+    return s + `<path d="${d}" fill="none" stroke="${INK}" stroke-width=".8"/>`;
+  }
+  function lemn(c, x, y, w, col) {
+    const h = w * .28;
+    const d = `M${x} ${y}C${f(x + w * .2)} ${f(y - h)} ${f(x + w * .5)} ${f(y - h)} ${f(x + w * .5)} ${y}C${f(x + w * .5)} ${f(y + h)} ${f(x + w * .2)} ${f(y + h)} ${x} ${y}C${f(x - w * .2)} ${f(y - h)} ${f(x - w * .5)} ${f(y - h)} ${f(x - w * .5)} ${y}C${f(x - w * .5)} ${f(y + h)} ${f(x - w * .2)} ${f(y + h)} ${x} ${y}Z`;
+    return `<path d="${d}" fill="none" stroke="${INK}" stroke-width="${f(w * .075)}" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col || c.G}" stroke-width="${f(w * .048)}"/>`;
+  }
+  function heart(x, y, s, fill) {
+    return `<path d="M${x} ${f(y + s * .9)}C${f(x - s * 1.3)} ${f(y + s * .1)} ${f(x - s * .7)} ${f(y - s * .8)} ${x} ${f(y - s * .25)}C${f(x + s * .7)} ${f(y - s * .8)} ${f(x + s * 1.3)} ${f(y + s * .1)} ${x} ${f(y + s * .9)}Z" fill="${fill}" stroke="${INK}" stroke-width="1"/>`;
+  }
+  function tower(c, x, y, w, h, col = "#b9a68a") { // y = base
+    let s = `<rect x="${f(x - w / 2)}" y="${f(y - h)}" width="${w}" height="${h}" fill="${col}" stroke="${INK}" stroke-width="1"/>`;
+    const cw = w / 5;
+    for (let i = 0; i < 3; i++) s += `<rect x="${f(x - w / 2 + i * 2 * cw)}" y="${f(y - h - cw)}" width="${f(cw)}" height="${f(cw)}" fill="${col}" stroke="${INK}" stroke-width="1"/>`;
+    return s + `<rect x="${f(x - w * .12)}" y="${f(y - h * .62)}" width="${f(w * .24)}" height="${f(h * .16)}" rx="${f(w * .12)}" fill="#3a2a22"/>`;
+  }
+  function crown(c, x, y, w, n = 5) { // y = band bottom
+    const h = w * .55, p = [[x - w / 2, y]];
+    for (let i = 0; i < n; i++) {
+      const tx = x - w / 2 + i * w / (n - 1);
+      p.push([tx, y - h]);
+      if (i < n - 1) p.push([tx + w / (n - 1) / 2, y - h * .45]);
+    }
+    p.push([x + w / 2, y]);
+    let s = `<polygon points="${P(p)}" fill="${c.G}" stroke="${INK}" stroke-width="1" stroke-linejoin="round"/>`;
+    s += `<rect x="${f(x - w / 2)}" y="${f(y - h * .22)}" width="${w}" height="${f(h * .22)}" fill="${c.G}" stroke="${INK}" stroke-width="1"/>`;
+    for (let i = 0; i < n; i++) s += `<circle cx="${f(x - w / 2 + i * w / (n - 1))}" cy="${f(y - h)}" r="${f(w * .05)}" fill="#b8574f" stroke="${INK}" stroke-width=".6"/>`;
+    return s;
+  }
+  function key(c, x, y, L, ang) {
+    const r = L * .13;
+    let s = `<g transform="translate(${x} ${y}) rotate(${ang})">`;
+    s += `<rect x="-2.5" y="${f(-L / 2 + r * 1.6)}" width="5" height="${f(L - r * 1.6)}" fill="${c.G}" stroke="${INK}" stroke-width=".7"/>`;
+    s += `<rect x="2" y="${f(L / 2 - 14)}" width="10" height="5" fill="${c.G}" stroke="${INK}" stroke-width=".6"/><rect x="2" y="${f(L / 2 - 6)}" width="7" height="5" fill="${c.G}" stroke="${INK}" stroke-width=".6"/>`;
+    s += `<circle cx="0" cy="${f(-L / 2 + r)}" r="${f(r)}" fill="none" stroke="${INK}" stroke-width="6"/><circle cx="0" cy="${f(-L / 2 + r)}" r="${f(r)}" fill="none" stroke="${c.G}" stroke-width="4"/>`;
+    return s + "</g>";
+  }
+  function wings(c, x, y, w) {
+    const d = `M${x} ${y}C${f(x - w * .3)} ${f(y - w * .35)} ${f(x - w * .8)} ${f(y - w * .4)} ${f(x - w)} ${f(y - w * .15)}C${f(x - w * .8)} ${f(y - w * .1)} ${f(x - w * .75)} ${y} ${f(x - w * .85)} ${f(y + w * .08)}C${f(x - w * .6)} ${f(y + w * .05)} ${f(x - w * .5)} ${f(y + w * .12)} ${f(x - w * .55)} ${f(y + w * .2)}C${f(x - w * .35)} ${f(y + w * .15)} ${f(x - w * .15)} ${f(y + w * .12)} ${x} ${y}Z`;
+    const p = `<path d="${d}" fill="#efe3c8" stroke="${INK}" stroke-width="1"/>`;
+    return p + `<g transform="translate(${2 * x} 0) scale(-1 1)">${p}</g>`;
+  }
+  function wheel(c, x, y, r) {
+    let s = `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${INK}" stroke-width="${f(r * .14)}"/><circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="${c.G}" stroke-width="${f(r * .1)}"/>`;
+    for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; s += `<line x1="${f(x + Math.cos(a) * r * .3)}" y1="${f(y + Math.sin(a) * r * .3)}" x2="${f(x + Math.cos(a) * r * .95)}" y2="${f(y + Math.sin(a) * r * .95)}" stroke="${INK}" stroke-width="${f(r * .085)}"/><line x1="${f(x + Math.cos(a) * r * .3)}" y1="${f(y + Math.sin(a) * r * .3)}" x2="${f(x + Math.cos(a) * r * .95)}" y2="${f(y + Math.sin(a) * r * .95)}" stroke="${c.G}" stroke-width="${f(r * .05)}"/>`; }
+    return s + `<circle cx="${x}" cy="${y}" r="${f(r * .3)}" fill="${c.G}" stroke="${INK}" stroke-width="1"/>`;
+  }
+  function drop(x, y, s, col = "#e8a24a") {
+    return `<path d="M${x} ${f(y - s)}C${f(x + s * .6)} ${f(y - s * .1)} ${f(x + s * .6)} ${f(y + s * .6)} ${x} ${f(y + s * .6)}C${f(x - s * .6)} ${f(y + s * .6)} ${f(x - s * .6)} ${f(y - s * .1)} ${x} ${f(y - s)}Z" fill="${col}" stroke="${INK}" stroke-width=".6"/>`;
+  }
+  function feather(c, x, y, L, ang, col = "#f3ead6") {
+    return `<g transform="translate(${x} ${y}) rotate(${ang})"><path d="M0 ${f(-L / 2)}C${f(L * .22)} ${f(-L * .25)} ${f(L * .2)} ${f(L * .2)} 0 ${f(L / 2)}C${f(-L * .2)} ${f(L * .2)} ${f(-L * .22)} ${f(-L * .25)} 0 ${f(-L / 2)}Z" fill="${col}" stroke="${INK}" stroke-width="1"/><line x1="0" y1="${f(-L / 2 + 4)}" x2="0" y2="${f(L / 2 + 12)}" stroke="${INK}" stroke-width="1.2"/></g>`;
+  }
+  function wood(x, y, w, h) {
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${f(Math.min(w, h) / 2)}" fill="#7d5230" stroke="${INK}" stroke-width="1"/>`;
+  }
+
+  /* ---------- the parrot (TarotParot's mascot), feet at 0,0, facing left ---------- */
+  function parrot(c, x, y, s = 1, o = {}) {
+    const sil = o.silhouette, G = c.G;
+    const fill = col => sil ? G : col;
+    const sw = sil ? .8 / s : 1.2;
+    let t = `<g transform="translate(${f(x)} ${f(y)}) scale(${s}${o.flipY ? " " + -s : ""})">`;
+    if (!o.noTail) t += parrotTail(c, o);
+    t += `<path d="M-32 -140C-50 -100 -40 -40 -6 -8C22 -20 34 -80 20 -138C10 -150 -20 -150 -32 -140Z" fill="${fill("#8d9c5c")}" stroke="${INK}" stroke-width="${sw}"/>`;
+    if (!sil) t += `<ellipse cx="-18" cy="-82" rx="15" ry="40" fill="#d9a441" opacity=".45"/>`;
+    t += `<path d="M8 -136C46 -118 50 -50 22 4C10 -20 0 -80 8 -136Z" fill="${fill("#6f84a0")}" stroke="${INK}" stroke-width="${sw}"/>`;
+    if (!sil) t += `<path d="M14 -108C30 -96 34 -70 28 -48M16 -80C26 -70 28 -50 22 -30M12 -54C18 -44 18 -30 16 -18" fill="none" stroke="#3f4f68" stroke-width="1.1" stroke-linecap="round"/><path d="M22 -6C26 -14 30 -22 30 -30" stroke="#a5552c" stroke-width="3" stroke-linecap="round"/>`;
+    t += `<circle cx="-12" cy="-160" r="28" fill="${fill("#d7a542")}" stroke="${INK}" stroke-width="${sw}"/>`;
+    if (!sil) t += `<path d="M-30 -182C-24 -194 -10 -196 -2 -188C-12 -190 -22 -186 -30 -182Z" fill="#a5552c"/><ellipse cx="-22" cy="-158" rx="11" ry="13" fill="#efe3c8"/>`;
+    t += `<path d="M-34 -174C-52 -176 -64 -160 -58 -136C-56 -146 -48 -150 -36 -148Z" fill="${fill("#ece2cc")}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+    t += `<path d="M-36 -148C-44 -146 -48 -138 -42 -132C-38 -136 -34 -140 -30 -144Z" fill="${fill("#3b2a22")}" stroke="${INK}" stroke-width="${sw}"/>`;
+    if (!sil) t += `<circle cx="-22" cy="-163" r="4.2" fill="#24150f"/><circle cx="-23.4" cy="-164.6" r="1.3" fill="#fff8e6"/><path d="M-30 -158C-28 -150 -18 -148 -14 -154" fill="none" stroke="#c7b79a" stroke-width=".9"/>`;
+    t += `<path d="M-22 -6Q-14 6 -4 -2M-4 -4Q4 8 12 0" fill="none" stroke="${sil ? INK : "#6b5a4a"}" stroke-width="3.2" stroke-linecap="round"/>`;
+    return t + "</g>";
+  }
+  function parrotTail(c, o = {}) {
+    const sil = o.silhouette;
+    return `<path d="M2 -8C12 30 20 62 30 104C24 64 10 30 -8 -4Z" fill="${sil ? c.G : "#a5552c"}" stroke="${INK}" stroke-width="1"/><path d="M12 -12C28 22 40 56 50 92C38 54 24 20 4 -8Z" fill="${sil ? c.G : "#5f7392"}" stroke="${INK}" stroke-width="1"/>`;
+  }
+
+  /* ---------- Major Arcana emblems (art area roughly x 30–270, y 85–420) ---------- */
+  const MAJOR = [
+    c => blob(c,150,200,95,70,"#a9bcd0",.5) + blob(c,120,375,95,40,"#9fae86",.55) + sun(c,212,140,22) + star8(c,92,150,20,11,4)
+      + `<path d="M28 420L28 374Q100 352 176 362Q200 366 214 382L222 420Z" fill="#8a7a4e" stroke="${INK}"/>`
+      + `<path d="M150 352Q146 316 150 282" stroke="#5f6b33" stroke-width="3" fill="none"/><ellipse cx="139" cy="318" rx="10" ry="4" transform="rotate(30 139 318)" fill="#7f8f4a" stroke="${INK}" stroke-width=".5"/><ellipse cx="161" cy="304" rx="10" ry="4" transform="rotate(-30 161 304)" fill="#7f8f4a" stroke="${INK}" stroke-width=".5"/>`
+      + rose(c,150,266,24) + feather(c,92,248,56,-28),
+    c => blob(c,150,250,90,120,"#c9806a",.45) + lemn(c,150,118,96) + wand(c,150,245,170,0,11)
+      + cup(c,72,352,14) + wand(c,120,368,52,0,6) + sword(c,178,366,58,0,7) + pentacle(c,228,368,16),
+    c => blob(c,150,250,82,135,"#7d8fb0",.5)
+      + `<rect x="96" y="120" width="108" height="214" fill="#8a4b52" opacity=".38"/>`
+      + [0,1,2,3].map(r => [0,1,2].map(k => `<circle cx="${118 + k * 32}" cy="${148 + r * 50}" r="8" fill="#b8574f" stroke="${INK}" stroke-width=".6"/>`).join("")).join("")
+      + `<rect x="50" y="110" width="36" height="294" fill="#3b2a2c" stroke="${INK}"/><rect x="44" y="102" width="48" height="12" fill="${c.G}" stroke="${INK}"/><text x="68" y="150" text-anchor="middle" font-family="${FONT}" font-size="24" fill="#efe6d2">B</text>`
+      + `<rect x="214" y="110" width="36" height="294" fill="#efe6d2" stroke="${INK}"/><rect x="208" y="102" width="48" height="12" fill="${c.G}" stroke="${INK}"/><text x="232" y="150" text-anchor="middle" font-family="${FONT}" font-size="24" fill="#3b2a2c">J</text>`
+      + `<g transform="rotate(90 150 372)">${crescent(c,150,372,30,.55)}</g>`,
+    c => blob(c,150,265,95,120,"#9fae86",.5)
+      + Array.from({length:12}, (_, i) => { const a = (-160 + i * 140 / 11) * Math.PI / 180; return star8(c, 150 + Math.cos(a) * 100, 222 + Math.sin(a) * 100, 9, 5, 2); }).join("")
+      + heart(150,262,58,c.G) + `<circle cx="150" cy="250" r="14" fill="none" stroke="${INK}" stroke-width="3"/><path d="M150 264V292M139 280H161" stroke="${INK}" stroke-width="3"/>`
+      + [[78,1],[222,-1]].map(([x, sd]) => `<path d="M${x} 410Q${x + sd * 4} 360 ${x + sd * 10} 318" stroke="#9c8240" stroke-width="2.5" fill="none"/>` + [0,1,2,3,4].map(k => `<ellipse cx="${x + sd * (8 + k * 1.2)}" cy="${330 + k * 14}" rx="4" ry="8" fill="${c.G}" stroke="${INK}" stroke-width=".5"/>`).join("")).join(""),
+    c => blob(c,150,262,100,122,"#c9806a",.5)
+      + `<rect x="92" y="172" width="116" height="222" rx="4" fill="#9c9488" stroke="${INK}"/><rect x="104" y="186" width="92" height="196" rx="3" fill="#b9b1a3" stroke="${INK}" stroke-width=".8"/>`
+      + [[92,1],[208,-1]].map(([x, sd]) => { let d = ""; for (let t = 0; t <= 3.6 * Math.PI; t += .3) { const rr = 3 + 2.6 * t; d += (t ? "L" : "M") + f(x + sd * Math.cos(t) * rr) + " " + f(172 + Math.sin(t) * rr); } return `<path d="${d}" fill="none" stroke="${INK}" stroke-width="6"/><path d="${d}" fill="none" stroke="${c.G}" stroke-width="3.6"/>`; }).join("")
+      + `<ellipse cx="150" cy="236" rx="17" ry="23" fill="none" stroke="${INK}" stroke-width="9"/><ellipse cx="150" cy="236" rx="17" ry="23" fill="none" stroke="${c.G}" stroke-width="6"/><rect x="122" y="258" width="56" height="10" fill="${c.G}" stroke="${INK}"/><rect x="145" y="258" width="10" height="110" fill="${c.G}" stroke="${INK}"/>`
+      + star8(c,150,122,16,9,3),
+    c => blob(c,150,240,95,122,"#d6a85a",.45)
+      + `<rect x="146" y="118" width="8" height="250" fill="${c.G}" stroke="${INK}"/><rect x="132" y="134" width="36" height="8" fill="${c.G}" stroke="${INK}"/><rect x="124" y="154" width="52" height="8" fill="${c.G}" stroke="${INK}"/><rect x="116" y="174" width="68" height="8" fill="${c.G}" stroke="${INK}"/>`
+      + key(c,124,350,96,-32) + key(c,176,350,96,32),
+    c => blob(c,150,150,92,62,"#d6a85a",.45) + blob(c,150,312,100,72,"#c9806a",.45)
+      + wings(c,150,150,72) + sun(c,150,140,22)
+      + [128,172].map(x => `<circle cx="${x}" cy="304" r="40" fill="none" stroke="${INK}" stroke-width="9"/>`).join("") + [128,172].map(x => `<circle cx="${x}" cy="304" r="40" fill="none" stroke="${c.G}" stroke-width="6"/>`).join("")
+      + heart(150,232,14,"#b8574f"),
+    c => blob(c,150,245,95,130,"#7d8fb0",.45)
+      + `<rect x="58" y="104" width="184" height="28" fill="#33415e" stroke="${INK}"/>` + [80,115,150,185,220].map(x => star8(c,x,118,8,5,2)).join("")
+      + wings(c,150,196,62) + `<circle cx="150" cy="196" r="15" fill="${c.G}" stroke="${INK}"/>` + wheel(c,150,302,58)
+      + `<circle cx="96" cy="392" r="17" fill="#2f2629" stroke="${c.G}" stroke-width="2"/><circle cx="204" cy="392" r="17" fill="#efe6d2" stroke="${c.G}" stroke-width="2"/>`,
+    c => blob(c,150,272,100,110,"#d6a85a",.5) + lemn(c,150,118,96)
+      + sun(c,150,276,42,{n:22,fill:"#b0623a",spiral:false,long:1.75,short:1.45})
+      + Array.from({length:12}, (_, i) => { const a = i * Math.PI / 6; return rose(c, 150 + Math.cos(a) * 94, 276 + Math.sin(a) * 94, 8, "#f0b7a4"); }).join("")
+      + heart(150,274,24,"#b8574f"),
+    c => blob(c,150,245,100,140,"#33415e",.55) + [[70,120],[232,150],[60,300],[240,330]].map(([x, y]) => star8(c,x,y,7,4,1.6)).join("")
+      + wood(212,118,10,300)
+      + `<circle cx="150" cy="166" r="9" fill="none" stroke="${INK}" stroke-width="4.5"/><circle cx="150" cy="166" r="9" fill="none" stroke="${c.G}" stroke-width="2.6"/>`
+      + `<path d="M126 197L174 197L162 175L138 175Z" fill="${c.G}" stroke="${INK}"/>` + blob(c,150,236,40,46,"#ffe7a3",.9)
+      + `<rect x="126" y="197" width="48" height="80" fill="#f6d27a" fill-opacity=".55" stroke="${c.G}" stroke-width="3"/>` + starN(c,150,237,20,11,6,0,"#fff6d8")
+      + `<rect x="120" y="277" width="60" height="11" fill="${c.G}" stroke="${INK}"/>`,
+    c => blob(c,150,252,110,110,"#d6a85a",.45) + blob(c,150,252,70,70,"#a9bcd0",.4)
+      + wheel(c,150,252,96) + `<circle cx="150" cy="252" r="70" fill="none" stroke="${INK}" stroke-width="1" stroke-dasharray="3 5"/>`
+      + [[62,108],[238,108],[62,398],[238,398]].map(([x, y]) => star8(c,x,y,13,7,3)).join(""),
+    c => blob(c,150,252,100,124,"#c9806a",.45)
+      + sword(c,150,262,300,0,15)
+      + `<rect x="66" y="176" width="168" height="7" fill="${c.G}" stroke="${INK}"/><path d="M78 182L56 240M78 182L100 240M222 182L200 240M222 182L244 240" stroke="${INK}" stroke-width="1.2"/>`
+      + `<path d="M52 240A26 26 0 0 0 104 240Z" fill="${c.G}" stroke="${INK}"/><path d="M196 240A26 26 0 0 0 248 240Z" fill="${c.G}" stroke="${INK}"/>`,
+    c => blob(c,150,300,90,100,"#7d8fb0",.45)
+      + wood(143,110,14,176) + wood(86,104,128,14)
+      + [[110,103,-30],[190,103,30],[136,160,-40],[164,220,40]].map(([x, y, a]) => `<ellipse cx="${x}" cy="${y}" rx="9" ry="4" transform="rotate(${a} ${x} ${y})" fill="#7f8f4a" stroke="${INK}" stroke-width=".5"/>`).join("")
+      + `<path d="M150 286V308" stroke="${INK}" stroke-width="2"/>` + sun(c,150,346,30,{n:24,long:1.55,short:1.3,spiral:false}) + `<circle cx="150" cy="346" r="18" fill="#fff4cf" stroke="${INK}" stroke-width=".8"/>`,
+    c => blob(c,150,230,100,140,"#7e4a5e",.5)
+      + `<path d="M96 108V312" stroke="#5a3a22" stroke-width="5"/><rect x="98" y="118" width="108" height="126" fill="#2b1c1f" stroke="${c.G}" stroke-width="2"/>` + rose(c,152,182,28)
+      + sun(c,150,362,36,{spiral:false}) + `<rect x="26" y="362" width="248" height="60" fill="#5f6b48" stroke="${INK}"/>`
+      + tower(c,68,362,28,74) + tower(c,232,362,28,74),
+    c => blob(c,150,250,100,122,"#a9bcd0",.5)
+      + `<g transform="rotate(-24 98 202)">${cup(c,98,180,22)}</g>` + cup(c,202,284,22)
+      + `<path d="M118 188Q166 196 194 284" stroke="#6f8fb5" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M118 188Q166 196 194 284" stroke="#d8e6f2" stroke-width="2" fill="none" stroke-linecap="round"/>`
+      + `<rect x="126" y="350" width="48" height="48" fill="none" stroke="${INK}" stroke-width="5"/><rect x="126" y="350" width="48" height="48" fill="none" stroke="${c.G}" stroke-width="3"/><polygon points="150,357 169,391 131,391" fill="${c.G}" stroke="${INK}"/>`,
+    c => blob(c,150,240,100,140,"#3b2a2c",.6)
+      + (() => { const p = []; for (let i = 0; i < 5; i++) { const a = Math.PI / 2 + i * 4 * Math.PI / 5; p.push([150 + Math.cos(a) * 34, 142 + Math.sin(a) * 34]); } return `<circle cx="150" cy="142" r="38" fill="none" stroke="${c.G}" stroke-width="2.5"/><polygon points="${P(p)}" fill="none" stroke="${INK}" stroke-width="5" stroke-linejoin="round"/><polygon points="${P(p)}" fill="none" stroke="${c.G}" stroke-width="3" stroke-linejoin="round"/>`; })()
+      + `<path d="M122 214C96 200 84 172 92 142C102 168 114 182 136 198Z" fill="${c.G}" stroke="${INK}"/><path d="M178 214C204 200 216 172 208 142C198 168 186 182 164 198Z" fill="${c.G}" stroke="${INK}"/>`
+      + `<rect x="112" y="252" width="76" height="58" fill="#4a3a36" stroke="${c.G}" stroke-width="2"/>`
+      + [[-1],[1]].map(([sd]) => Array.from({length:6}, (_, k) => { const x = 150 + sd * (28 + k * 13), y = 310 + k * 17; return `<ellipse cx="${f(x)}" cy="${y}" rx="${k % 2 ? 4 : 8}" ry="${k % 2 ? 8 : 4}" fill="none" stroke="${INK}" stroke-width="4"/><ellipse cx="${f(x)}" cy="${y}" rx="${k % 2 ? 4 : 8}" ry="${k % 2 ? 8 : 4}" fill="none" stroke="${c.G}" stroke-width="2.4"/>`; }).join("")).join(""),
+    c => blob(c,150,240,100,140,"#7e4a5e",.55)
+      + tower(c,150,410,74,218) + `<g transform="rotate(28 210 148)">${crown(c,210,160,52,5)}</g>`
+      + `<polyline points="248,90 204,136 222,141 178,184 196,189 160,220" fill="none" stroke="${INK}" stroke-width="10" stroke-linejoin="round"/><polyline points="248,90 204,136 222,141 178,184 196,189 160,220" fill="none" stroke="${c.G}" stroke-width="6" stroke-linejoin="round"/>`
+      + [[78,200],[66,262],[230,250],[88,320],[222,318],[240,380],[60,372]].map(([x, y]) => drop(x,y,9)).join(""),
+    c => blob(c,150,200,100,112,"#33415e",.55) + blob(c,150,386,104,32,"#6f8fb5",.6)
+      + star8(c,150,175,58,30,11)
+      + [[64,110],[236,110],[48,192],[252,192],[68,268],[232,268],[150,266]].map(([x, y]) => star8(c,x,y,13,7,3)).join("")
+      + `<g transform="rotate(-38 112 330)"><ellipse cx="112" cy="334" rx="16" ry="20" fill="#c98a5a" stroke="${INK}"/><rect x="104" y="304" width="16" height="14" fill="#c98a5a" stroke="${INK}"/></g>`
+      + `<path d="M96 318Q90 350 120 382" stroke="#d8e6f2" stroke-width="3.5" fill="none"/><path d="M60 388Q80 380 100 388T140 388T180 388T220 388T250 388M70 402Q90 394 110 402T150 402T190 402T234 402" stroke="#d8e6f2" stroke-width="2" fill="none"/>`,
+    c => blob(c,150,190,100,100,"#33415e",.6) + blob(c,150,404,98,22,"#6f8fb5",.65)
+      + `<circle cx="150" cy="165" r="52" fill="#e9e4d6" stroke="${c.G}" stroke-width="3"/>` + crescent(c,150,165,52,.42)
+      + drop(112,244,7,"#f0d48a") + drop(150,256,7,"#f0d48a") + drop(188,244,7,"#f0d48a")
+      + tower(c,52,372,28,82) + tower(c,248,372,28,82)
+      + `<path d="M150 410C120 384 186 352 150 324C126 304 166 286 150 268" stroke="#c99c50" stroke-width="7" fill="none" stroke-linecap="round" opacity=".9"/>`,
+    c => blob(c,150,210,110,110,"#d6a85a",.55)
+      + sun(c,150,200,52)
+      + [72,124,176,228].map(x => `<path d="M${x} 420V388" stroke="#5f6b33" stroke-width="3"/>` + Array.from({length:10}, (_, k) => { const a = k * Math.PI / 5; return `<ellipse cx="${f(x + Math.cos(a) * 12)}" cy="${f(380 + Math.sin(a) * 12)}" rx="7" ry="3.4" transform="rotate(${f(a * 180 / Math.PI)} ${f(x + Math.cos(a) * 12)} ${f(380 + Math.sin(a) * 12)})" fill="#e8b23c" stroke="${INK}" stroke-width=".5"/>`; }).join("") + `<circle cx="${x}" cy="380" r="8" fill="#5a3a22" stroke="${INK}"/>`).join(""),
+    c => blob(c,150,150,110,62,"#a9bcd0",.55)
+      + [60,90,120,150,180,210,240].map(x => `<line x1="150" y1="130" x2="${x}" y2="404" stroke="${c.G}" stroke-width="1.5" opacity=".6"/>`).join("")
+      + [[108,120,22],[138,108,27],[172,112,25],[202,124,20]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#f3ede2" stroke="${INK}" stroke-width=".8"/>`).join("")
+      + `<g transform="translate(110 274) rotate(-55)"><path d="M0 -22Q30 -6 62 -4L124 -3L124 3L62 4Q30 6 0 22Z" fill="${c.G}" stroke="${INK}"/><ellipse cx="0" cy="0" rx="5" ry="22" fill="#6e4a22" stroke="${INK}"/></g>`
+      + `<rect x="114" y="206" width="40" height="40" fill="#f3ede2" stroke="${INK}"/><rect x="130" y="210" width="8" height="32" fill="#b8574f"/><rect x="118" y="222" width="32" height="8" fill="#b8574f"/>`
+      + [[90,388],[150,398],[210,388]].map(([x, y]) => star8(c,x,y,14,8,3)).join(""),
+    c => blob(c,150,255,100,130,"#9fae86",.55)
+      + Array.from({length:36}, (_, i) => { const t = i / 36 * Math.PI * 2, x = 150 + 72 * Math.cos(t), y = 255 + 108 * Math.sin(t), a = Math.atan2(108 * Math.cos(t), -72 * Math.sin(t)) * 180 / Math.PI + (i % 2 ? 28 : -28); return `<ellipse cx="${f(x)}" cy="${f(y)}" rx="10" ry="4.2" transform="rotate(${f(a)} ${f(x)} ${f(y)})" fill="${i % 2 ? "#6f7f3f" : "#8f9f55"}" stroke="${INK}" stroke-width=".4"/>`; }).join("")
+      + lemn(c,150,147,44,"#b8574f") + lemn(c,150,363,44,"#b8574f") + star8(c,150,255,36,19,6)
+      + [[58,106],[242,106],[58,402],[242,402]].map(([x, y]) => star8(c,x,y,13,7,3)).join("")
+  ];
+
+  /* ---------- Minor Arcana ---------- */
+  const PIPS = {
+    2:[[0,-1],[0,1]], 3:[[0,-1],[0,0],[0,1]], 4:[[-1,-1],[1,-1],[-1,1],[1,1]], 5:[[-1,-1],[1,-1],[0,0],[-1,1],[1,1]],
+    6:[[-1,-1],[1,-1],[-1,0],[1,0],[-1,1],[1,1]], 7:[[-1,-1],[1,-1],[0,-.5],[-1,0],[1,0],[-1,1],[1,1]],
+    8:[[-1,-1],[1,-1],[0,-.5],[-1,0],[1,0],[0,.5],[-1,1],[1,1]],
+    9:[[-1,-1.2],[1,-1.2],[-1,-.4],[1,-.4],[0,0],[-1,.4],[1,.4],[-1,1.2],[1,1.2]],
+    10:[[-1,-1.2],[1,-1.2],[0,-.8],[-1,-.4],[1,-.4],[-1,.4],[1,.4],[0,.8],[-1,1.2],[1,1.2]]
+  };
+  const SUIT_BLOB = { wands:"#c9806a", cups:"#a9bcd0", swords:"#9fb0b8", pentacles:"#9fae86" };
+  function minor(c, card) {
+    const s = card.suit, r = card.rank;
+    let o = blob(c,150,255,100,135,SUIT_BLOB[s],.45);
+    if (r === 1) {
+      o += Array.from({length:16}, (_, i) => { const a = i * Math.PI / 8; return `<line x1="${f(150 + Math.cos(a) * 70)}" y1="${f(255 + Math.sin(a) * 70)}" x2="${f(150 + Math.cos(a) * 122)}" y2="${f(255 + Math.sin(a) * 122)}" stroke="${c.G}" stroke-width="${i % 2 ? 1.2 : 2.4}" opacity=".75"/>`; }).join("");
+      if (s === "cups") o += cup(c,150,192,60) + drop(130,150,7,"#a9c3dd") + drop(150,136,7,"#a9c3dd") + drop(170,150,7,"#a9c3dd");
+      if (s === "wands") o += wand(c,150,258,300,0,18);
+      if (s === "swords") o += sword(c,150,262,300,0,20) + crown(c,150,138,62,5);
+      if (s === "pentacles") o += pentacle(c,150,255,78);
+      return o;
+    }
+    if (r <= 10) {
+      if (s === "wands" || s === "swords") {
+        const spread = Math.min(44, 10 * (r - 1));
+        for (let i = 0; i < r; i++) {
+          const a = r === 1 ? 0 : -spread / 2 + i * spread / (r - 1), ar = a * Math.PI / 180;
+          const x = 150 + Math.sin(ar) * 150, y = 440 - Math.cos(ar) * 150;
+          o += s === "wands" ? wand(c,x,y,270,a,r > 6 ? 10 : 12) : sword(c,x,y,264,a,r > 6 ? 11 : 13);
+        }
+      } else {
+        const sz = r <= 3 ? 34 : r <= 6 ? 30 : r <= 8 ? 26 : 22, yu = r >= 9 ? 100 : 100;
+        for (const [px, py] of PIPS[r]) {
+          const x = 150 + px * 56, y = 255 + py * yu;
+          o += s === "cups" ? cup(c,x,y - sz * .85,sz * .85) : pentacle(c,x,y,sz * .9);
+        }
+      }
+      return o;
+    }
+    // court cards: a symbol of rank above the suit
+    if (r === 11) o += feather(c,150,148,74,24,"#f3ead6");
+    if (r === 12) o += `<path d="M126 178A26 26 0 1 1 174 178" fill="none" stroke="${INK}" stroke-width="14" stroke-linecap="round"/><path d="M126 178A26 26 0 1 1 174 178" fill="none" stroke="${c.G}" stroke-width="10" stroke-linecap="round"/>` + [[128,162],[150,128],[172,162]].map(([x, y]) => `<circle cx="${x}" cy="${y + 4}" r="1.8" fill="${INK}"/>`).join("");
+    if (r === 13) o += crown(c,150,178,78,5);
+    if (r === 14) o += crown(c,150,178,80,3) + `<rect x="147" y="112" width="6" height="26" fill="${c.G}" stroke="${INK}"/><rect x="139" y="118" width="22" height="6" fill="${c.G}" stroke="${INK}"/>`;
+    if (s === "cups") o += cup(c,150,258,42);
+    if (s === "pentacles") o += pentacle(c,150,300,52);
+    if (s === "wands") o += wand(c,150,304,220,0,14);
+    if (s === "swords") o += sword(c,150,306,226,0,16);
+    return o;
+  }
+
+  /* ---------- a card face ---------- */
+  function face(card) {
+    const u = "c" + (++N), c = ctx(u), seed = card.id * 7 + 3;
+    const tint = TINT[card.suit || "major"];
+    const top = card.arcana === "major" ? ROMAN[card.num] : (card.rank <= 10 ? (card.rank === 1 ? "ACE" : ROMAN[card.rank]) : RANKS[card.rank - 1]);
+    const name = card.name, fs = f(Math.min(24, 232 / (name.length * .56)));
+    const art = card.arcana === "major" ? MAJOR[card.num](c) : minor(c, card);
+    return `<svg viewBox="0 0 300 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${name}"><defs>${gold(u)}<linearGradient id="s${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#7f8a96"/><stop offset=".5" stop-color="#eef1f3"/><stop offset="1" stop-color="#76818d"/></linearGradient><radialGradient id="v${u}" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#6b3f1e" stop-opacity="0"/><stop offset="1" stop-color="#6b3f1e" stop-opacity=".4"/></radialGradient>${wash("w" + u, seed, tint, .006)}${wash("x" + u, seed + 31, TINT2[card.suit || "major"], .0045, 2, -.95)}${grain("n" + u, seed + 5)}${bleed("b" + u, seed + 9)}</defs>`
+      + `<rect width="300" height="520" rx="16" fill="#efe2c2"/><rect width="300" height="520" rx="16" fill="#000" filter="url(#w${u})"/><rect width="300" height="520" rx="16" fill="#000" filter="url(#x${u})"/><rect width="300" height="520" rx="16" fill="#000" filter="url(#n${u})"/><rect width="300" height="520" rx="16" fill="url(#v${u})"/>`
+      + `<rect x="16" y="16" width="268" height="488" rx="9" fill="none" stroke="${c.G}" stroke-width="3"/><rect x="23" y="23" width="254" height="474" rx="6" fill="none" stroke="${c.G}" stroke-width="1"/>`
+      + [[23,23],[277,23],[23,497],[277,497]].map(([x, y]) => starN(c,x,y,8,2.5,4)).join("")
+      + `<text x="150" y="64" text-anchor="middle" font-family="${FONT}" font-size="25" letter-spacing="2" fill="#5b3a1c">${top}</text>`
+      + art
+      + `<rect x="32" y="434" width="236" height="46" rx="4" fill="#f5ead1" fill-opacity=".9" stroke="${c.G}" stroke-width="1.6"/><text x="150" y="${f(457 + fs * .34)}" text-anchor="middle" font-family="${FONT}" font-size="${fs}" fill="#3b2414">${name}</text></svg>`;
+  }
+
+  /* ---------- the card back (looks the same either way up, so reversals stay hidden) ---------- */
+  function back() {
+    const u = "bk", c = ctx(u);
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 520" width="300" height="520"><defs>${gold(u)}${wash("a" + u, 11, [.66,.34,.18], .007)}${wash("o" + u, 23, [.45,.45,.24], .005)}${wash("y" + u, 37, [.42,.5,.62], .006, 2, -.9)}${wash("r" + u, 53, [.86,.54,.44], .005, 2, -1)}${wash("p" + u, 71, [.46,.3,.52], .0055, 2, -.95)}${grain("n" + u, 4)}${bleed("b" + u, 8)}<radialGradient id="v${u}" cx=".5" cy=".5" r=".72"><stop offset=".5" stop-color="#1c0d14" stop-opacity="0"/><stop offset="1" stop-color="#1c0d14" stop-opacity=".55"/></radialGradient><radialGradient id="orb${u}" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#f4f4f1"/><stop offset=".55" stop-color="#b9c4d2"/><stop offset="1" stop-color="#6b7c97"/></radialGradient></defs>`
+      + `<rect width="300" height="520" rx="16" fill="#4a2330"/><rect width="300" height="520" rx="16" filter="url(#a${u})"/><rect width="300" height="520" rx="16" filter="url(#o${u})"/><rect width="300" height="520" rx="16" filter="url(#y${u})"/><rect width="300" height="520" rx="16" filter="url(#r${u})"/><rect width="300" height="520" rx="16" filter="url(#p${u})"/><rect width="300" height="520" rx="16" filter="url(#n${u})"/><rect width="300" height="520" rx="16" fill="url(#v${u})"/>`
+      + `<rect x="14" y="14" width="272" height="492" rx="10" fill="none" stroke="${c.G}" stroke-width="3"/><rect x="22" y="22" width="256" height="476" rx="7" fill="none" stroke="${c.G}" stroke-width="1"/>`
+      + `<circle cx="150" cy="260" r="114" fill="none" stroke="${c.G}" stroke-width="1.4" stroke-dasharray="2 6"/><circle cx="150" cy="260" r="102" fill="none" stroke="${c.G}" stroke-width="2"/>`
+      + `<circle cx="150" cy="260" r="60" fill="url(#orb${u})" stroke="${c.G}" stroke-width="2.5"/>` + blob(c,136,248,30,22,"#ffffff",.35)
+      + star8(c,150,260,98,46,13)
+      + parrot(c,150,98,.34,{silhouette:true,noTail:true}) + `<g transform="rotate(180 150 260)">${parrot(c,150,98,.34,{silhouette:true,noTail:true})}</g>`
+      + [[46,46],[254,46],[46,474],[254,474],[46,260],[254,260]].map(([x, y]) => starN(c,x,y,11,3,4)).join("")
+      + "</svg>";
+  }
+
+  /* ---------- app icon: the parrot perched on a crystal ball ---------- */
+  function icon(size = 512) {
+    const u = "ic", c = ctx(u);
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="${size}" height="${size}"><defs>${gold(u)}${wash("a" + u, 11, [.66,.34,.18], .005)}${wash("o" + u, 23, [.45,.45,.24], .004)}${wash("y" + u, 37, [.42,.5,.62], .0045, 2, -.9)}${bleed("b" + u, 8)}<radialGradient id="v${u}" cx=".5" cy=".5" r=".75"><stop offset=".45" stop-color="#1c0d14" stop-opacity="0"/><stop offset="1" stop-color="#1c0d14" stop-opacity=".55"/></radialGradient><radialGradient id="orb${u}" cx=".4" cy=".36" r=".72"><stop offset="0" stop-color="#f6f6f2"/><stop offset=".55" stop-color="#b9c4d2"/><stop offset="1" stop-color="#5f708c"/></radialGradient></defs>`
+      + `<rect width="512" height="512" fill="#4a2330"/><rect width="512" height="512" filter="url(#a${u})"/><rect width="512" height="512" filter="url(#o${u})"/><rect width="512" height="512" filter="url(#y${u})"/><rect width="512" height="512" fill="url(#v${u})"/>`
+      + star8(c,350,150,58,30,9)
+      + `<path d="M196 430C200 404 214 392 256 392C298 392 312 404 316 430Z" fill="#5a3a22" stroke="${INK}" stroke-width="1.5"/><rect x="186" y="424" width="140" height="16" rx="5" fill="${c.G}" stroke="${INK}" stroke-width="1.5"/>`
+      + `<circle cx="256" cy="330" r="86" fill="url(#orb${u})" stroke="${c.G}" stroke-width="4"/>` + blob(c,232,306,40,28,"#ffffff",.4)
+      + parrot(c,250,250,.9)
+      + "</svg>";
+  }
+
+  /* small logo mark for the header */
+  function mark() {
+    const u = "mk", c = ctx(u);
+    return `<svg viewBox="-70 -205 130 215" width="26" height="42" aria-hidden="true"><defs>${gold(u)}</defs>${parrot(c,0,0,1)}</svg>`;
+  }
+
+  return { face, back, icon, mark, ROMAN };
+})();
+
+/* ===== TarotParot app ===== */
+(() => {
+"use strict";
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[ch]);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+};
+const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const inFrame = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+const fmt = n => Number(n).toLocaleString();
+/* phones and tablets shuffle by touch and motion; computers by mouse, scrolling and keys */
+const IS_TOUCH = matchMedia("(hover: none) and (pointer: coarse)").matches;
+const DEV = IS_TOUCH ? "phone" : "computer";
+const COPY = IS_TOUCH ? {
+  lede: "Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.",
+  instr: "Swirl your finger over the cards. Shake your phone too, if you like. Stop when it feels right.",
+  l1: "Touch", l2: "Motion", install: "Add TarotParot to your home screen"
+} : {
+  lede: "Every deck here is shuffled by you: the way you move your mouse, the rhythm of your typing, the moon and the minute you ask. No two shuffles are ever the same.",
+  instr: "Swirl your mouse over the cards. Scroll over them or tap a few keys too, if you like. Stop when it feels right.",
+  l1: "Mouse", l2: "Scroll", install: "Install TarotParot as an app"
+};
+
+/* ---------- the sky right now ---------- */
+const SYN = 29.530588853;
+const MOONS = ["New Moon","Waxing Crescent","First Quarter","Waxing Gibbous","Full Moon","Waning Gibbous","Last Quarter","Waning Crescent"];
+const MOON_TEXT = [
+  "a time for setting intentions and planting seeds",
+  "a time to take the first small steps",
+  "a time for decisions and pushing through resistance",
+  "a time for refining, and for patience before the peak",
+  "a time when things come to light and feelings run high",
+  "a time for gratitude and sharing what you have learned",
+  "a time for releasing and forgiving",
+  "a time for rest before the next cycle begins"
+];
+function moonInfo(d) {
+  let age = ((d.getTime() - Date.UTC(2000, 0, 6, 18, 14)) / 86400000) % SYN;
+  if (age < 0) age += SYN;
+  const frac = age / SYN, idx = Math.floor(frac * 8 + .5) % 8;
+  return { name: MOONS[idx], idx, frac, illum: (1 - Math.cos(2 * Math.PI * frac)) / 2 };
+}
+const SIGNS = [["Capricorn",1,1],["Aquarius",1,20],["Pisces",2,19],["Aries",3,21],["Taurus",4,20],["Gemini",5,21],["Cancer",6,21],["Leo",7,23],["Virgo",8,23],["Libra",9,23],["Scorpio",10,23],["Sagittarius",11,22],["Capricorn",12,22]];
+function sunSign(d) { const v = (d.getMonth() + 1) * 100 + d.getDate(); let s = "Capricorn"; for (const [n, m, dd] of SIGNS) if (v >= m * 100 + dd) s = n; return s; }
+const RULERS = ["the Sun","the Moon","Mars","Mercury","Jupiter","Venus","Saturn"];
+const weekday = d => d.toLocaleDateString([], { weekday: "long" });
+const timeOf = d => d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+const dateOf = d => d.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+function tzShort(d) { try { return d.toLocaleTimeString([], { timeZoneName: "short" }).split(" ").pop(); } catch (e) { return ""; } }
+const moonName = n => /Moon$/.test(n) ? n : n + " Moon";
+function skyLine(d = new Date()) { const m = moonInfo(d); return `${weekday(d)} · ${moonName(m.name)}, ${Math.round(m.illum * 100)}% lit · Sun in ${sunSign(d)}`; }
+
+function birthCard(iso) {
+  if (!iso) return null;
+  const [y, m, d] = iso.split("-").map(Number);
+  if (!y || !m || !d || y < 1000) return null;
+  let n = y + m + d;
+  while (n > 21) n = String(n).split("").reduce((a, b) => a + Number(b), 0);
+  return DECK[n];
+}
+
+/* ---------- spreads ---------- */
+const SPREADS = {
+  single: { name: "Single Pull", positions: [{ t: "Your card", d: "the message you most need right now" }] },
+  three: { name: "Past · Present · Future", positions: [{ t: "Past", d: "what shaped this" }, { t: "Present", d: "where you stand now" }, { t: "Future", d: "where this is heading" }] },
+  celtic: { name: "Celtic Cross", positions: [
+    { t: "The Heart of It", d: "the core of the situation" },
+    { t: "The Crossing", d: "what challenges you" },
+    { t: "The Root", d: "the foundation beneath it" },
+    { t: "The Recent Past", d: "what is passing away" },
+    { t: "The Crown", d: "your hope, or the best that could come" },
+    { t: "The Near Future", d: "what is approaching" },
+    { t: "Yourself", d: "how you are meeting this" },
+    { t: "Your Surroundings", d: "other people and outside forces" },
+    { t: "Hopes and Fears", d: "what you hope for, or fear" },
+    { t: "The Outcome", d: "where this is likely to lead" }
+  ] }
+};
+// Celtic Cross layout: centers as fractions of the spread's width (the box is 1 wide × 1.24 tall)
+const CELTIC = [[.36,.62],[.36,.62],[.36,.93],[.17,.62],[.36,.31],[.55,.62],[.88,1.093],[.88,.778],[.88,.464],[.88,.149]];
+
+/* ---------- state ---------- */
+const S = { spread: "three", question: "", bday: "", reversals: true, deck: null, piles: null, picks: [], reading: null, report: null, stream: null, saved: false };
+
+/* ---------- entropy: everything that shapes the shuffle ---------- */
+const Ent = {
+  nums: [], touch: 0, motion: 0, scroll: 0, keys: 0, lastKey: 0, path: 0, v: 0, motionSeen: false,
+  add(...a) { for (const x of a) { const n = +x; if (Number.isFinite(n) && this.nums.length < 90000) this.nums.push(n); } },
+  reset() { this.nums = []; this.touch = 0; this.motion = 0; this.scroll = 0; this.keys = 0; this.lastKey = 0; this.path = 0; this.v = 0; this.motionSeen = false; }
+};
+const TARGET = 240;
+const score = () => Ent.touch + Ent.motion * .5 + Ent.scroll * 2 + Ent.keys * 3;
+
+const enc = new TextEncoder();
+function cat(...arrs) { let len = 0; for (const a of arrs) len += a.length; const out = new Uint8Array(len); let o = 0; for (const a of arrs) { out.set(a, o); o += a.length; } return out; }
+function fallbackHash(bytes) {
+  const h = new Uint32Array(8);
+  for (let i = 0; i < 8; i++) h[i] = (0x9e3779b1 ^ Math.imul(i + 1, 0x85ebca6b)) >>> 0;
+  for (let i = 0; i < bytes.length; i++) { const k = i & 7; h[k] = Math.imul(h[k] ^ bytes[i], 0x01000193); h[(k + 1) & 7] ^= h[k] >>> 13; }
+  for (let r = 0; r < 6; r++) for (let i = 0; i < 8; i++) { h[i] ^= h[(i + 3) & 7] >>> 16; h[i] = Math.imul(h[i], 0x85ebca6b); h[i] ^= h[i] >>> 13; }
+  const rnd = new Uint32Array(8); crypto.getRandomValues(rnd);
+  for (let i = 0; i < 8; i++) h[i] ^= rnd[i];
+  return new Uint8Array(h.buffer);
+}
+async function sha256(bytes) {
+  if (window.crypto && crypto.subtle) { try { return new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)); } catch (e) { /* fall through */ } }
+  return fallbackHash(bytes);
+}
+const hex = b => [...b].map(x => x.toString(16).padStart(2, "0")).join("");
+async function makeStream(seed) {
+  const blocks = await Promise.all(Array.from({ length: 64 }, (_, i) => sha256(cat(seed, new Uint8Array([i >> 8, i & 255])))));
+  const bytes = cat(...blocks); let p = 0;
+  const u32 = () => {
+    if (p + 4 > bytes.length) { crypto.getRandomValues(bytes); p = 0; }
+    const v = ((bytes[p] << 24) | (bytes[p + 1] << 16) | (bytes[p + 2] << 8) | bytes[p + 3]) >>> 0; p += 4; return v;
+  };
+  return { u32, int(n) { const lim = Math.floor(4294967296 / n) * n; let v; do { v = u32(); } while (v >= lim); return v % n; } };
+}
+async function deviceSignals() {
+  const s = { screen: `${screen.width}×${screen.height}`, dpr: devicePixelRatio, lang: navigator.language, cores: navigator.hardwareConcurrency || 0, mem: navigator.deviceMemory || 0, touchPoints: navigator.maxTouchPoints || 0, orient: (screen.orientation && screen.orientation.type) || "", conn: (navigator.connection && navigator.connection.effectiveType) || "" };
+  try {
+    if (navigator.getBattery) {
+      const b = await Promise.race([navigator.getBattery(), new Promise((_, rej) => setTimeout(rej, 500))]);
+      s.battery = Math.round(b.level * 100); s.charging = !!b.charging;
+    }
+  } catch (e) { /* not available */ }
+  return s;
+}
+function timingJitter() {
+  const out = [];
+  for (let i = 0; i < 48; i++) { const t0 = performance.now(); let x = i; for (let j = 0; j < 1500; j++) x = (x * 1.000001 + Math.sqrt(j + x)) % 997; out.push(performance.now() - t0, x); }
+  return out;
+}
+
+/* ---------- views ---------- */
+let current = "home";
+function go(name) {
+  const prev = current; current = name;
+  $$(".view").forEach(v => v.classList.toggle("active", v.id === "v-" + name));
+  window.scrollTo(0, 0);
+  if (prev === "shuffle" && name !== "shuffle") stopMotion();
+  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal })[name]?.();
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
+
+/* ---------- 1. ask ---------- */
+const prefs = store.get("tp.prefs", {});
+let savedBday = prefs.bday || "";
+if (prefs.reversals === false) $("#rev").checked = false;
+if (prefs.spread && SPREADS[prefs.spread]) { const r = $(`input[name="spread"][value="${prefs.spread}"]`); if (r) r.checked = true; }
+function prettyDate(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }); }
+function savePrefs() { store.set("tp.prefs", { bday: savedBday, reversals: $("#rev").checked, spread: ($('input[name="spread"]:checked') || {}).value || "three" }); }
+function showBirthday() {
+  const c = birthCard(savedBday);
+  $("#bdayValue").textContent = savedBday ? prettyDate(savedBday) : "Not added yet";
+  $("#birthCard").textContent = c ? `Your birth card is ${c.name}.` : "Add it to find your birth card and weave it into every shuffle.";
+  $("#bdayEdit").textContent = savedBday ? "Edit" : "Add your birthday";
+  $("#bdayRemove").hidden = !savedBday;
+}
+function editBirthday(open) {
+  $("#bdayView").hidden = open; $("#bdayEditBox").hidden = !open;
+  if (open) { $("#bday").value = savedBday; $("#bdayErr").textContent = ""; $("#bday").focus(); }
+  else $("#bdayEdit").focus();
+}
+$("#bdayEdit").addEventListener("click", () => editBirthday(true));
+$("#bdayCancel").addEventListener("click", () => editBirthday(false));
+$("#bdaySave").addEventListener("click", () => {
+  const v = $("#bday").value;
+  if (!v || !birthCard(v)) { $("#bdayErr").textContent = "Pick your full birthday: month, day and year."; return; }
+  if (new Date(v) > new Date()) { $("#bdayErr").textContent = "That date is in the future. Check the year."; return; }
+  savedBday = v; savePrefs(); showBirthday(); editBirthday(false); toast("Birthday saved");
+});
+$("#bdayRemove").addEventListener("click", () => { savedBday = ""; savePrefs(); showBirthday(); toast("Birthday removed"); });
+$("#bday").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("#bdaySave").click(); } });
+showBirthday();
+
+function enterHome() {
+  Ent.reset(); S.deck = null; S.picks = []; S.reading = null; S.saved = false;
+  $("#skyLine").textContent = skyLine();
+}
+$("#q").addEventListener("keydown", e => {
+  const now = performance.now();
+  if (Ent.lastKey) Ent.add(now - Ent.lastKey);
+  Ent.lastKey = now; Ent.keys++;
+});
+$("#askForm").addEventListener("submit", e => {
+  e.preventDefault();
+  S.question = $("#q").value.trim();
+  S.spread = ($('input[name="spread"]:checked') || {}).value || "three";
+  S.bday = savedBday;
+  S.reversals = $("#rev").checked;
+  savePrefs();
+  go("shuffle");
+});
+
+/* ---------- 2. shuffle ---------- */
+const zone = $("#deckZone"), deckCards = $$("#deck i"), ring = $("#ringFill");
+let lastP = null, raf = 0, meterQueued = false;
+function updateMeters() {
+  meterQueued = false;
+  $("#mTouch").textContent = fmt(Ent.touch);
+  $("#mMotion").textContent = fmt(IS_TOUCH ? Ent.motion : Ent.scroll);
+  $("#mKeys").textContent = fmt(Ent.keys);
+  const pct = Math.min(1, score() / TARGET);
+  ring.style.strokeDashoffset = String(100 - pct * 100);
+  const btn = $("#shuffleDone");
+  if (btn.dataset.busy) return;
+  btn.disabled = pct < 1;
+  btn.textContent = pct < 1 ? `Keep swirling · ${Math.round(pct * 100)}%` : "Seal the shuffle";
+}
+const queueMeters = () => { if (!meterQueued) { meterQueued = true; requestAnimationFrame(updateMeters); } };
+/* The deck really shuffles: cards slide out, then slip back in over or under the others. */
+const order = deckCards.map((_, i) => i);            // bottom → top
+const st = deckCards.map(() => ({ mv: null }));
+let lastDir = { x: 1, y: 0 }, lastLaunch = 0;
+const easeOut = p => 1 - Math.pow(1 - p, 3);
+const easeInOut = p => p < .5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2;
+function restack() { order.forEach((ci, pos) => { deckCards[ci].style.zIndex = String(pos + 1); }); }
+restack();
+function launch(t) {
+  const free = deckCards.map((_, i) => i).filter(i => !st[i].mv);
+  if (!free.length) return;
+  const ci = free[Math.floor(Math.random() * free.length)];
+  const w = $("#deck").offsetWidth || 100;
+  const ang = Math.atan2(lastDir.y, lastDir.x) + (Math.random() - .5) * 1.4 + (Math.random() < .35 ? Math.PI : 0);
+  const dist = w * (.85 + Math.random() * .55), over = Math.random() < .5;
+  st[ci].mv = { t0: t, dur: 480 + Math.random() * 280, dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist * .75, rot: (Math.random() - .5) * 46, over, swapped: false };
+}
+function deckLoop(t) {
+  if (current !== "shuffle") { raf = 0; return; }
+  Ent.v *= .94;
+  const inFlight = st.filter(x => x.mv).length;
+  const want = reduceMotion ? 0 : Math.min(5, Math.floor(Ent.v / 5));
+  if (inFlight < want && t - lastLaunch > 110) { launch(t); lastLaunch = t; }
+  const n = deckCards.length;
+  deckCards.forEach((el, ci) => {
+    const s = st[ci];
+    let pos = order.indexOf(ci), x = -pos * .9, y = -pos * .9, a = 0, sc = 1, lift = 0;
+    if (s.mv) {
+      const m = s.mv, p = Math.min(1, (t - m.t0) / m.dur);
+      if (p < .5) {
+        const e = easeOut(p / .5);
+        x += m.dx * e; y += m.dy * e; a = m.rot * e; lift = e;
+      } else {
+        if (!m.swapped) {
+          m.swapped = true;
+          order.splice(order.indexOf(ci), 1);
+          const dest = m.over ? order.length : Math.floor(Math.random() * Math.max(1, order.length * .45));
+          order.splice(dest, 0, ci);
+          restack();
+          pos = order.indexOf(ci); x = -pos * .9; y = -pos * .9;
+        }
+        const e = 1 - easeInOut((p - .5) / .5);
+        x += m.dx * e; y += m.dy * e; a = m.rot * e; lift = e;
+      }
+      sc = 1 + (m.over ? .06 : -.04) * lift;
+      if (p >= 1) s.mv = null;
+    } else {
+      const k = (pos + 1) / n;
+      a = Math.sin(t * .006 + ci * 1.9) * Ent.v * .22 * k;
+      x += Math.cos(t * .005 + ci * 2.3) * Ent.v * .35 * k;
+      y += Math.sin(t * .004 + ci * 1.1) * Ent.v * .22 * k;
+    }
+    el.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${a.toFixed(2)}deg) scale(${sc.toFixed(3)})`;
+    el.style.boxShadow = lift > .05 ? `0 ${6 + lift * 14}px ${16 + lift * 18}px rgba(10,4,6,${(.45 + lift * .15).toFixed(2)})` : "";
+  });
+  raf = requestAnimationFrame(deckLoop);
+}
+zone.addEventListener("pointerdown", e => {
+  try { zone.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+  lastP = { x: e.clientX, y: e.clientY };
+  Ent.add(e.clientX, e.clientY, e.timeStamp, e.pressure || 0);
+  Ent.v = Math.min(40, Ent.v + 7);
+});
+zone.addEventListener("pointermove", e => {
+  if (current !== "shuffle") return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const c of (evs.length ? evs : [e])) { Ent.add(c.clientX, c.clientY, c.timeStamp, c.pressure || 0, c.width || 0, c.tiltX || 0); Ent.touch++; }
+  if (lastP) {
+    const dx = e.clientX - lastP.x, dy = e.clientY - lastP.y, d = Math.hypot(dx, dy);
+    Ent.path += d; Ent.v = Math.min(40, Ent.v + d * .15);
+    if (d > 1.5) lastDir = { x: dx / d, y: dy / d };
+  }
+  lastP = { x: e.clientX, y: e.clientY };
+  queueMeters();
+});
+zone.addEventListener("pointerup", () => { lastP = null; });
+zone.addEventListener("wheel", e => {
+  if (current !== "shuffle") return;
+  e.preventDefault();
+  Ent.add(e.deltaX, e.deltaY, e.deltaZ, e.deltaMode, e.timeStamp, e.clientX, e.clientY); Ent.scroll++;
+  Ent.v = Math.min(40, Ent.v + Math.min(10, 2 + Math.abs(e.deltaY) * .04));
+  queueMeters();
+}, { passive: false });
+document.addEventListener("keydown", e => {
+  if (current !== "shuffle" || e.key === "Tab" || e.metaKey || e.ctrlKey) return;
+  if ((e.key === "Enter" || e.key === " ") && e.target.closest && e.target.closest("button")) return;
+  e.preventDefault();
+  Ent.add(e.timeStamp, e.key.length, e.repeat ? 1 : 0); Ent.touch += 8; Ent.v = Math.min(40, Ent.v + 8);
+  queueMeters();
+});
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity || e.acceleration || {}, r = e.rotationRate || {};
+  if (a.x == null && r.alpha == null) return;
+  Ent.add(a.x, a.y, a.z, r.alpha, r.beta, r.gamma, e.timeStamp); Ent.motion++; Ent.motionSeen = true;
+  const acc = e.acceleration || {};
+  const mag = Math.hypot(acc.x || 0, acc.y || 0, acc.z || 0);
+  if (mag > 1.2) Ent.v = Math.min(40, Ent.v + mag);
+  queueMeters();
+}
+function onOrient(e) { if (e.alpha == null && e.beta == null) return; Ent.add(e.alpha, e.beta, e.gamma, e.timeStamp); Ent.motion++; Ent.motionSeen = true; queueMeters(); }
+function startMotion() { window.addEventListener("devicemotion", onMotion); window.addEventListener("deviceorientation", onOrient); }
+function stopMotion() { window.removeEventListener("devicemotion", onMotion); window.removeEventListener("deviceorientation", onOrient); }
+$("#motionBtn").addEventListener("click", async () => {
+  const note = $("#motionNote");
+  try {
+    const res = await DeviceMotionEvent.requestPermission();
+    try { if (window.DeviceOrientationEvent && DeviceOrientationEvent.requestPermission) await DeviceOrientationEvent.requestPermission(); } catch (e) { /* motion alone is enough */ }
+    if (res === "granted") { startMotion(); $("#motionBtn").hidden = true; note.textContent = "Now shake or tilt your phone."; }
+    else note.textContent = "Motion is off. Your touch is plenty.";
+  } catch (e) { $("#motionBtn").hidden = true; note.textContent = "Motion isn't available here. Your touch is plenty."; }
+});
+function enterShuffle() {
+  Ent.touch = 0; Ent.motion = 0; Ent.scroll = 0; Ent.path = 0; Ent.v = 6;
+  const btn = $("#shuffleDone"); delete btn.dataset.busy;
+  const needsPerm = IS_TOUCH && typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function";
+  $("#motionBtn").hidden = !needsPerm;
+  $("#motionNote").textContent = "";
+  if (IS_TOUCH && !needsPerm) startMotion();
+  if (!IS_TOUCH) { try { zone.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+  updateMeters();
+  if (!raf) raf = requestAnimationFrame(deckLoop);
+}
+$("#shuffleDone").addEventListener("click", seal);
+
+async function seal() {
+  const btn = $("#shuffleDone");
+  btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Sealing your shuffle…";
+  stopMotion();
+  Ent.add(...timingJitter());
+  const now = new Date(), dev = await deviceSignals(), moon = moonInfo(now);
+  const context = { question: S.question, bday: S.bday, spread: S.spread, reversals: S.reversals, when: now.toISOString(), tz: Intl.DateTimeFormat().resolvedOptions().timeZone, moon: moon.frac, sun: sunSign(now), dev };
+  const rnd = new Uint8Array(32); crypto.getRandomValues(rnd);
+  const seed = await sha256(cat(new Uint8Array(new Float64Array(Ent.nums).buffer), enc.encode(JSON.stringify(context)), rnd));
+  const stream = await makeStream(seed);
+  const order = Array.from({ length: 78 }, (_, i) => i);
+  for (let i = 77; i > 0; i--) { const j = stream.int(i + 1); [order[i], order[j]] = [order[j], order[i]]; }
+  S.deck = order.map(id => ({ id, rev: S.reversals && stream.int(1000) < 400 }));
+  S.stream = stream;
+  S.report = {
+    kind: DEV, touch: Ent.touch, path: Math.round(Ent.path), motion: Ent.motion, scroll: Ent.scroll, motionSeen: Ent.motionSeen, keys: Ent.keys, samples: Ent.nums.length,
+    when: now.toISOString(), tz: tzShort(now), moon: { name: moon.name, illum: moon.illum, idx: moon.idx }, sun: sunSign(now), ruler: RULERS[now.getDay()],
+    dev, qLen: S.question.length, bday: !!S.bday, seed: hex(seed)
+  };
+  go("cut");
+}
+
+/* ---------- 3. cut ---------- */
+function enterCut() {
+  const a = 22 + S.stream.int(10), b = 48 + S.stream.int(10);
+  S.piles = [S.deck.slice(0, a), S.deck.slice(a, b), S.deck.slice(b)];
+  const names = ["Left", "Middle", "Right"];
+  $("#piles").innerHTML = S.piles.map((p, k) => `<button class="pile" type="button" data-k="${k}" aria-label="${names[k]} pile, ${p.length} cards"><span class="stack">${Array.from({ length: Math.min(6, Math.ceil(p.length / 5)) }, (_, i) => `<i style="transform:translate(${-i * 1.6}px,${-i * 1.6}px)"></i>`).join("")}</span><span>${p.length} cards</span></button>`).join("");
+}
+$("#piles").addEventListener("click", e => {
+  const b = e.target.closest(".pile"); if (!b || $("#piles").dataset.locked) return;
+  const k = +b.dataset.k;
+  $("#piles").dataset.locked = "1";
+  $$(".pile").forEach(p => p.classList.add(p === b ? "chosen" : "faded"));
+  S.deck = [...S.piles[k], ...S.piles.filter((_, i) => i !== k).flat()];
+  S.report.cut = { pile: ["left", "middle", "right"][k], size: S.piles[k].length };
+  setTimeout(() => { delete $("#piles").dataset.locked; go("pick"); }, reduceMotion ? 100 : 650);
+});
+
+/* ---------- 4. pick ---------- */
+const need = () => SPREADS[S.spread].positions.length;
+function enterPick() {
+  const n = need(); S.picks = [];
+  $("#pickInstr").textContent = n === 1 ? "Pick one card. Go with the first one your eye lands on." : `Pick ${n === 3 ? "three" : "ten"} cards. Go with the ones your eye lands on.`;
+  $("#pickSlots").innerHTML = Array.from({ length: n }, (_, i) => `<i>${i + 1}</i>`).join("");
+  $("#fan").innerHTML = S.deck.map((c, i) => {
+    const t = i / 77, y = Math.sin(t * Math.PI * 4) * 9 - Math.sin(t * Math.PI) * 14, a = Math.cos(t * Math.PI * 4) * 4 + (t - .5) * 10;
+    return `<button class="fc" type="button" data-i="${i}" style="--y:${y.toFixed(1)}px;--a:${a.toFixed(1)}deg" aria-label="Face-down card ${i + 1} of 78"></button>`;
+  }).join("");
+  $("#parrotPick").disabled = false;
+  requestAnimationFrame(() => { const w = $("#fanWrap"); w.scrollLeft = (w.scrollWidth - w.clientWidth) / 2; });
+}
+function takeCard(i) {
+  const n = need();
+  if (S.picks.length >= n || S.picks.includes(i)) return false;
+  S.picks.push(i);
+  const btn = $(`.fc[data-i="${i}"]`); if (btn) btn.classList.add("taken");
+  const slot = $$("#pickSlots i")[S.picks.length - 1]; if (slot) slot.classList.add("on");
+  if (S.picks.length === n) { $("#parrotPick").disabled = true; setTimeout(() => { buildReading(); go("read"); }, reduceMotion ? 150 : 750); }
+  return true;
+}
+$("#fan").addEventListener("click", e => { const b = e.target.closest(".fc"); if (b) takeCard(+b.dataset.i); });
+$("#parrotPick").addEventListener("click", () => {
+  // The parrot pecks at cards using the same sealed shuffle stream.
+  $("#parrotPick").disabled = true;
+  const left = () => need() - S.picks.length;
+  const step = () => {
+    if (left() <= 0) return;
+    let i; do { i = S.stream.int(78); } while (S.picks.includes(i));
+    const b = $(`.fc[data-i="${i}"]`);
+    if (b) { b.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" }); b.classList.add("peck"); }
+    S.report.parrot = true;
+    setTimeout(() => { takeCard(i); if (left() > 0) setTimeout(step, reduceMotion ? 60 : 260); }, reduceMotion ? 60 : 420);
+  };
+  step();
+});
+
+/* ---------- 5. reading ---------- */
+function buildReading() {
+  const r = { id: Date.now().toString(36), ts: new Date().toISOString(), spread: S.spread, question: S.question, bday: S.bday, reversals: S.reversals, cards: S.picks.map(i => ({ id: S.deck[i].id, rev: S.deck[i].rev })), report: Object.assign({}, S.report, { picks: S.picks.slice() }) };
+  S.reading = r; S.saved = false;
+  renderReading(r, false);
+}
+function slotHTML(r, c, i, revealed) {
+  const sp = SPREADS[r.spread], pos = sp.positions[i], card = DECK[c.id];
+  const label = revealed ? `${pos.t}: ${card.name}${c.rev ? ", reversed" : ""}` : `${pos.t}: face down. Tap to turn.`;
+  let style = `--i:${i}`;
+  if (r.spread === "celtic") { const [x, y] = CELTIC[i]; style += `;left:${(x * 100).toFixed(2)}%;top:${(y / 1.24 * 100).toFixed(2)}%`; }
+  const cls = "slot" + (r.spread === "celtic" && i === 1 ? " cross" : "");
+  return `<div class="${cls}" style="${style}"><button class="tcard${revealed ? " flipped" : ""}${c.rev ? " rev" : ""}" type="button" data-i="${i}" aria-label="${esc(label)}">${r.spread === "celtic" ? `<span class="badge">${i + 1}</span>` : ""}<span class="inner"><span class="back"></span><span class="face">${revealed ? ART.face(card) : ""}</span></span></button>${r.spread === "celtic" ? "" : `<span class="pos">${pos.t}</span>`}</div>`;
+}
+function noteHTML(r, c, i, revealed) {
+  const pos = SPREADS[r.spread].positions[i], k = DECK[c.id];
+  if (!revealed) return `<article class="panel note veiled" id="note-${i}"><span class="num">${i + 1}</span><div><p class="pos">${pos.t} · ${pos.d}</p><p class="wait">Tap card ${i + 1} to turn it over.</p></div></article>`;
+  const A = analyzeQuestion(r.question), lens = lensFor(A.topic, k, c.rev);
+  return `<article class="panel note" id="note-${i}"><span class="num">${i + 1}</span><div><p class="pos">${pos.t} · ${pos.d}</p><h3>${k.name}${c.rev ? '<span class="chip">Reversed</span>' : ""}</h3><p class="kw">${c.rev ? k.rv : k.up}</p><p>${c.rev ? k.rvM : k.upM}</p>${lens ? `<p class="lens"><b>For ${A.topic.label}:</b> ${lens}</p>` : ""}</div></article>`;
+}
+function renderReading(r, revealed) {
+  const sp = SPREADS[r.spread], when = new Date(r.ts);
+  const A = analyzeQuestion(r.question);
+  $("#readMeta").textContent = `${sp.name}${A.topic ? " · " + A.topic.tag : ""} · ${dateOf(when)}`;
+  $("#qEcho").textContent = r.question ? `“${r.question}”` : "An open reading";
+  const el = $("#spread");
+  el.className = "spread " + r.spread;
+  el.innerHTML = r.cards.map((c, i) => slotHTML(r, c, i, revealed)).join("");
+  $("#notes").innerHTML = r.cards.map((c, i) => noteHTML(r, c, i, revealed)).join("");
+  $("#revealAll").parentElement.hidden = revealed;
+  $("#after").hidden = !revealed;
+  if (revealed) renderAfter(r);
+}
+function flip(i) {
+  const r = S.reading, b = $(`.tcard[data-i="${i}"]`);
+  if (!r || !b || b.dataset.turned) return;
+  b.dataset.turned = "1";
+  const c = r.cards[i], card = DECK[c.id], pos = SPREADS[r.spread].positions[i];
+  b.querySelector(".face").innerHTML = ART.face(card);
+  requestAnimationFrame(() => b.classList.add("flipped"));
+  b.setAttribute("aria-label", `${pos.t}: ${card.name}${c.rev ? ", reversed" : ""}`);
+  $("#note-" + i).outerHTML = noteHTML(r, c, i, true);
+  if ($$(".tcard").every(t => t.dataset.turned)) setTimeout(finish, reduceMotion ? 0 : 700);
+}
+$("#spread").addEventListener("click", e => {
+  const b = e.target.closest(".tcard"); if (!b) return;
+  const i = +b.dataset.i;
+  if (b.dataset.turned || b.classList.contains("flipped")) { const n = $("#note-" + i); if (n) n.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); return; }
+  flip(i);
+});
+$("#revealAll").addEventListener("click", () => {
+  const n = S.reading ? S.reading.cards.length : 0;
+  for (let i = 0; i < n; i++) setTimeout(() => flip(i), reduceMotion ? 0 : i * 260);
+});
+function finish() {
+  const r = S.reading; if (!r) return;
+  $("#revealAll").parentElement.hidden = true;
+  $("#after").hidden = false;
+  if (!S.saved) { S.saved = true; r.savedOk = saveReading(r); }
+  renderAfter(r);
+}
+
+const kw2 = s => { const p = s.split(" · "); return p.length > 1 ? `${p[0]} and ${p[1]}` : p[0]; };
+function synth(r) {
+  const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
+  const sp = SPREADS[r.spread], n = cards.length, out = [];
+  const A = analyzeQuestion(r.question);
+  const lead = [];
+  if (A.topic) lead.push(`You asked about ${A.topic.label}, so every card here is read through that lens.`);
+  if (A.type === "yesno") lead.push(yesNo(cards).text);
+  if (A.type === "when") lead.push(whenText(cards));
+  if (A.type === "how") { const adv = cards[n - 1]; lead.push(`For how to move forward, ${adv.name}${adv.rev ? " reversed" : ""} is your advice card: ${kw2(adv.rev ? adv.rv : adv.up)}.`); }
+  if (A.type === "why" && n > 1) { const root = cards[r.spread === "celtic" ? 2 : 0]; lead.push(`For why this is happening, look at ${root.name}${root.rev ? " reversed" : ""} in the ${sp.positions[r.spread === "celtic" ? 2 : 0].t.replace(/^The /, "").toLowerCase()} position: ${kw2(root.rev ? root.rv : root.up)}.`); }
+  if (lead.length) out.push(lead.join(" "));
+  const majors = cards.filter(c => c.arcana === "major"), revs = cards.filter(c => c.rev);
+  const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 };
+  cards.forEach(c => { if (c.suit) counts[c.suit]++; });
+  if (n === 1) {
+    const c = cards[0];
+    out.push(`${c.name}${c.rev ? ", reversed," : ""} is your card. ${c.rev ? c.rvM : c.upM}`);
+    if (c.arcana === "major") out.push("As one of the Major Arcana, it points to a bigger life lesson rather than a passing mood.");
+    else out.push(`As a card of ${SUITS[c.suit].name}, it speaks to ${SUITS[c.suit].domain}.${c.rank <= 10 ? ` Its number carries the energy of ${RANK_THEME[c.rank]}.` : " Court cards often stand for a person, or a side of yourself you are being asked to step into."}`);
+  } else {
+    if (majors.length / n >= .5) out.push(`${majors.length} of your ${n} cards are Major Arcana. This is a significant chapter: bigger forces and life lessons are at work, more than day-to-day choices.`);
+    else if (majors.length === 0) out.push("There are no Major Arcana here, so this is about everyday matters that are well within your power to shape.");
+    else out.push(`${majors.map(c => c.name).join(" and ")} ${majors.length === 1 ? "marks" : "mark"} where the deeper lesson sits.`);
+    const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    if (ranked[0][1] >= 2 && ranked[0][1] > ranked[1][1]) out.push(`${SUITS[ranked[0][0]].name} lead the spread, so ${SUITS[ranked[0][0]].domain} sit at the center of this.`);
+    else if (n >= 10) { const miss = ranked.filter(x => x[1] === 0).map(x => x[0]); if (miss.length === 1) out.push(`No ${SUITS[miss[0]].name} appear, so ${SUITS[miss[0]].domain} are not where the answer lies right now.`); }
+    if (revs.length / n > .5) out.push("More than half the cards are reversed. Energy is blocked, delayed or turned inward; the real work may be on the inside before anything shifts outside.");
+    else if (revs.length === 0 && n >= 3 && r.reversals !== false) out.push("Every card came up upright, so energy is flowing outward and things can move freely.");
+    const ranks = {};
+    cards.forEach(c => { if (c.rank) ranks[c.rank] = (ranks[c.rank] || 0) + 1; });
+    Object.entries(ranks).filter(([k, v]) => v >= 2 && +k <= 10).forEach(([k]) => out.push(`The ${RANK_PLURAL[k - 1]} repeat, underlining ${RANK_THEME[k]}.`));
+    if (cards.filter(c => c.rank > 10).length >= 2) out.push("Several court cards suggest other people, or different sides of you, play a big part here.");
+    const last = cards[n - 1], lp = sp.positions[n - 1].t.replace(/^The /, "").toLowerCase();
+    out.push(`Your ${lp} card, ${last.name}${last.rev ? " reversed" : ""}, points toward ${kw2(last.rev ? last.rv : last.up)}.`);
+  }
+  if (A.person) {
+    const courts = cards.filter(c => c.rank > 10);
+    out.push(courts.length ? `${courts[0].name} may stand for ${A.person}, or for the side of you that is dealing with them.` : `No court cards appeared, so this reading is less about what ${A.person} will do and more about your own part in it.`);
+  }
+  if (A.topic && A.topic.key === "health") out.push("Tarot is for reflection, so for anything medical, check in with a doctor too.");
+  const bc = birthCard(r.bday);
+  if (bc && cards.some(c => c.id === bc.id)) out.push(`Your birth card, ${bc.name}, showed up in this reading. That makes its message especially personal.`);
+  const m = r.report && r.report.moon;
+  if (m) out.push(`You drew these cards under a ${moonName(m.name).toLowerCase()}, ${MOON_TEXT[m.idx]}.`);
+  return out;
+}
+function parrotLine(r) {
+  const A = analyzeQuestion(r.question);
+  if (A.type === "yesno") return `A little birdie told me: ${yesNo(r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }))).short}.`;
+  const c = DECK[r.cards[r.cards.length - 1].id], rev = r.cards[r.cards.length - 1].rev;
+  return `A little birdie told me: ${kw2(rev ? c.rv : c.up)}.`;
+}
+function entropyHTML(rep) {
+  const when = new Date(rep.when), d = rep.dev || {}, kind = rep.kind || "phone", isPhone = kind === "phone";
+  const phone = [d.screen ? `screen ${d.screen}` : "", d.battery != null ? `battery ${d.battery}%${d.charging ? " and charging" : ""}` : "", d.conn ? `${d.conn} connection` : "", "processor timing jitter"].filter(Boolean).join(", ");
+  const rows = [
+    [isPhone ? "Your touch" : "Your mouse", rep.touch ? `${fmt(rep.touch)} points along a ${fmt(rep.path)}-pixel swirl` : "Keyboard rhythm in place of a swirl"],
+    isPhone ? ["Your phone's motion", rep.motion ? `${fmt(rep.motion)} readings from the motion sensors` : "Not available in this view, so it was left out"]
+            : ["Your scrolling", rep.scroll ? `${fmt(rep.scroll)} scroll movements over the deck` : "None this time"],
+    ["Your typing", rep.keys ? `The rhythm of ${fmt(rep.keys)} keystrokes` : "No question typed"],
+    ["The moment", `${weekday(when)}, ${timeOf(when)} ${rep.tz || ""}, a day ruled by ${rep.ruler}`],
+    ["The sky", `${moonName(rep.moon.name)}, ${Math.round(rep.moon.illum * 100)}% lit · Sun in ${rep.sun}`],
+    ["Your question", rep.qLen ? `${fmt(rep.qLen)} characters` : "An open reading"],
+    ["Your birthday", rep.bday ? "Included" : "Not given"],
+    [isPhone ? "Your phone" : "Your computer", phone.charAt(0).toUpperCase() + phone.slice(1)],
+    ["Your cut", rep.cut ? `The ${rep.cut.pile} pile of ${rep.cut.size} cards went on top` : "None"],
+    ["Who picked", rep.parrot ? "The parrot pecked them from the spread" : "You chose from the spread"],
+    ["Sealed with", `256 bits from your ${kind}'s secure random generator, all mixed together with SHA-256`]
+  ];
+  const fp = (rep.seed || "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
+  return `<summary>What shaped your shuffle</summary><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl><p class="fp">Shuffle fingerprint <code>${fp}</code></p><p class="hint">All of this stayed on your ${kind}. Nothing was sent anywhere, and the same mix can never happen twice.</p>`;
+}
+function renderAfter(r) {
+  $("#summary").innerHTML = `<h2>Your reading</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
+  $("#entropy").innerHTML = entropyHTML(r.report);
+  $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
+}
+function readingText(r) {
+  const sp = SPREADS[r.spread];
+  const lines = [`TarotParot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
+  const A = analyzeQuestion(r.question);
+  r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
+  lines.push("", ...synth(r), "", parrotLine(r));
+  if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
+  return lines.join("\n");
+}
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("show"), 2200); }
+$("#copyBtn").addEventListener("click", async () => {
+  if (!S.reading) return;
+  try { await navigator.clipboard.writeText(readingText(S.reading)); toast("Reading copied"); }
+  catch (e) { toast("Copying isn't allowed here"); }
+});
+
+/* ---------- 6. journal ---------- */
+const JKEY = "tp.journal.v1";
+const journal = () => store.get(JKEY, []);
+function saveReading(r) {
+  const j = journal().filter(x => x.id !== r.id);
+  const copy = Object.assign({}, r); delete copy.savedOk;
+  j.unshift(copy); if (j.length > 200) j.length = 200;
+  const ok = store.set(JKEY, j); updateJCount(); return ok;
+}
+function updateJCount() { const n = journal().length; $("#jcount").textContent = n ? String(n) : ""; }
+function enterJournal() {
+  const j = journal();
+  if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
+  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span></button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
+}
+$("#jlist").addEventListener("click", e => {
+  const del = e.target.closest(".jdel");
+  if (del) {
+    if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "Tap to delete"; setTimeout(() => { del.classList.remove("armed"); del.textContent = "Delete"; }, 3000); return; }
+    store.set(JKEY, journal().filter(x => x.id !== del.dataset.id)); updateJCount(); enterJournal(); return;
+  }
+  const open = e.target.closest(".jopen");
+  if (open) {
+    const r = journal().find(x => x.id === open.dataset.id); if (!r) return;
+    S.reading = r; S.saved = true; r.savedOk = true;
+    $$(".view").forEach(v => v.classList.toggle("active", v.id === "v-read")); current = "read"; window.scrollTo(0, 0);
+    renderReading(r, true);
+  }
+});
+
+/* ---------- card back, logo, sky ---------- */
+function rasterize(svg, w, h) {
+  return new Promise(res => {
+    const url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+    const img = new Image();
+    img.onload = () => { try { const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(img, 0, 0, w, h); res(c.toDataURL("image/png")); } catch (e) { res(url); } };
+    img.onerror = () => res(null);
+    img.src = url;
+  });
+}
+rasterize(ART.back(), 360, 624).then(u => { if (u) document.documentElement.style.setProperty("--back", `url("${u}")`); });
+$("#mark").innerHTML = ART.mark();
+
+function startSky() {
+  const cv = $("#sky");
+  const gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
+  if (!gl) return;
+  const vs = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+  const fs = `precision mediump float;uniform vec2 r;uniform float t;
+vec2 h2(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return -1.+2.*fract(sin(p)*43758.5453);}
+float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(dot(h2(i),f),dot(h2(i+vec2(1.,0.)),f-vec2(1.,0.)),u.x),mix(dot(h2(i+vec2(0.,1.)),f-vec2(0.,1.)),dot(h2(i+vec2(1.,1.)),f-vec2(1.,1.)),u.x),u.y);}
+float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<4;i++){v+=a*n(p);p=m*p;a*=.5;}return v;}
+void main(){
+ vec2 uv=gl_FragCoord.xy/r.y;float T=t*.05;
+ vec2 q=vec2(fbm(uv*1.1+vec2(0.,T)),fbm(uv*1.1+vec2(5.2,1.3)-vec2(T*.8,0.)));
+ vec2 p=uv*1.45+2.4*q+vec2(T*.3,-T*.2);
+ vec3 C[9];
+ C[0]=vec3(.50,.15,.22);C[1]=vec3(.76,.38,.18);C[2]=vec3(.86,.66,.26);C[3]=vec3(.48,.54,.22);C[4]=vec3(.40,.58,.52);
+ C[5]=vec3(.42,.56,.74);C[6]=vec3(.24,.30,.52);C[7]=vec3(.46,.28,.50);C[8]=vec3(.93,.85,.66);
+ vec3 acc=vec3(0.);float tw=0.;
+ for(int i=0;i<9;i++){
+  float fi=float(i);
+  float w=fbm(p+vec2(fi*3.17,fi*1.93)+vec2(sin(T+fi),cos(T*.8+fi))*.35);
+  w=exp(13.*w-(i==8?2.5:0.));
+  acc+=C[i]*w;tw+=w;}
+ vec3 c=acc/tw;
+ float g=n(uv*9.+q*4.);
+ c*=.96+.06*g;
+ float L=dot(c,vec3(.3,.59,.11));c=mix(vec3(L),c,1.3);
+ vec2 v=gl_FragCoord.xy/r-.5;c*=1.-.32*dot(v,v);
+ gl_FragColor=vec4(c,1.);}`;
+  const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
+  const v = sh(gl.VERTEX_SHADER, vs), fr = sh(gl.FRAGMENT_SHADER, fs);
+  if (!v || !fr) return;
+  const pr = gl.createProgram(); gl.attachShader(pr, v); gl.attachShader(pr, fr); gl.linkProgram(pr);
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) return;
+  gl.useProgram(pr);
+  const buf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]), gl.STATIC_DRAW);
+  const loc = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  const uR = gl.getUniformLocation(pr, "r"), uT = gl.getUniformLocation(pr, "t");
+  const offset = Math.random() * 200, t0 = performance.now(), SCALE = .5;
+  let last = -1e9;
+  function draw(now) {
+    const w = Math.max(2, Math.round(innerWidth * SCALE)), h = Math.max(2, Math.round(innerHeight * SCALE));
+    if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; gl.viewport(0, 0, w, h); }
+    gl.uniform2f(uR, w, h); gl.uniform1f(uT, offset + (now - t0) / 1000);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+  }
+  function frame(now) { if (!document.hidden && now - last > 33) { last = now; draw(now); } requestAnimationFrame(frame); }
+  if (reduceMotion) { draw(performance.now()); addEventListener("resize", () => draw(performance.now())); }
+  else requestAnimationFrame(frame);
+}
+startSky();
+
+/* ---------- home screen install ---------- */
+let deferredPrompt = null;
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferredPrompt = e; $("#installBtn").hidden = false; });
+$("#installBtn").addEventListener("click", async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  try { await deferredPrompt.userChoice; } catch (e) { /* ignore */ }
+  deferredPrompt = null; $("#installBtn").hidden = true;
+});
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone && !inFrame) $("#iosHint").hidden = false;
+if (!inFrame) { try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) { /* not allowed here */ } }
+
+$("#lede").textContent = COPY.lede;
+$("#shuffleInstr").textContent = COPY.instr;
+$("#lTouch").textContent = COPY.l1;
+$("#lMotion").textContent = COPY.l2;
+$("#installBtn").textContent = COPY.install;
+updateJCount();
+enterHome();
+})();
+
+</script>
+</body>
+</html>
