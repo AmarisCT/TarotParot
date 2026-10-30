@@ -3,36 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>TarotParot</title>
-<meta name="description" content="TarotParot: tarot readings shuffled by your touch or mouse, your device's motion and the moment you ask. A little birdie told me.">
+<title>TarotParrot</title>
+<meta name="description" content="TarotParrot: tarot readings shuffled by your touch or mouse, your device's motion and the moment you ask. A little birdie told me.">
 <meta name="theme-color" content="#4a2330">
-<link rel="canonical" href="https://amarisct.github.io/TarotParot/">
+<link rel="canonical" href="https://amarisct.github.io/TarotParrot/">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="TarotParot">
-<meta property="og:title" content="TarotParot · A little birdie told me.">
+<meta property="og:site_name" content="TarotParrot">
+<meta property="og:title" content="TarotParrot · A little birdie told me.">
 <meta property="og:description" content="Tarot shuffled by you. Swirl, shake and ask. Original watercolor cards, read for your question.">
-<meta property="og:url" content="https://amarisct.github.io/TarotParot/">
-<meta property="og:image" content="https://amarisct.github.io/TarotParot/og-image.jpg">
+<meta property="og:url" content="https://amarisct.github.io/TarotParrot/">
+<meta property="og:image" content="https://amarisct.github.io/TarotParrot/og-image.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="A watercolor parrot perched on a crystal ball beside a gold star, with the words TarotParot and A little birdie told me.">
+<meta property="og:image:alt" content="A watercolor parrot perched on a crystal ball beside a gold star, with the words TarotParrot and A little birdie told me.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="TarotParot · A little birdie told me.">
+<meta name="twitter:title" content="TarotParrot · A little birdie told me.">
 <meta name="twitter:description" content="Tarot shuffled by you. Swirl, shake and ask. Original watercolor cards, read for your question.">
-<meta name="twitter:image" content="https://amarisct.github.io/TarotParot/og-image.jpg">
+<meta name="twitter:image" content="https://amarisct.github.io/TarotParrot/og-image.jpg">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="TarotParot">
+<meta name="apple-mobile-web-app-title" content="TarotParrot">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=swap" rel="stylesheet">
 <style>
 :root {
-  /* TarotParot: a fortune-teller's watercolor collage. One centered column floating over a living painted sky. */
+  /* TarotParrot: a fortune-teller's watercolor collage. One centered column floating over a living painted sky. */
   --plum: #2b1822;
   --wine: #6d2b31;
   --rust: #a8582f;
@@ -138,7 +138,21 @@ h2 { font-size: clamp(28px, 6.5vw, 40px); line-height: 1.1; }
 .lede { max-width: 33em; margin: 0; font-size: 19px; color: #f6ecd6; text-shadow: 0 1px 12px rgba(30, 10, 15, .85); }
 .tagline { font-family: var(--display); font-style: italic; font-size: 21px; color: var(--gold-hi); margin: 0; text-shadow: 0 1px 10px rgba(30, 10, 15, .8); }
 .instr { margin: 0; color: #f6ecd6; text-shadow: 0 1px 10px rgba(30, 10, 15, .85); max-width: 32em; }
-.hero { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; }
+.hero { display: flex; flex-direction: column; gap: 10px; padding-top: 0; }
+.hero-art { width: min(56vw, 240px); margin: -6px auto 2px; filter: drop-shadow(0 14px 30px rgba(20, 6, 12, .45)); }
+.hero-svg { width: 100%; height: auto; display: block; overflow: visible; }
+.hero-svg .swirl { animation: swirl 8s linear infinite; }
+.hero-svg .shimmer { animation: shimmer 4s ease-in-out infinite; }
+.hero-svg .star-main { animation: twinkle 2s ease-in-out infinite; }
+.hero-svg .sparkle { animation: sparkle 4s ease-in-out infinite; opacity: 0; }
+.hero-svg .bob { animation: bob 4s ease-in-out infinite; }
+.hero-svg .halo { animation: halo 4s ease-in-out infinite; }
+@keyframes swirl { to { transform: rotate(360deg); } }
+@keyframes shimmer { 0%, 15% { transform: translateX(-30px); opacity: 0; } 35% { opacity: 1; } 60%, 100% { transform: translateX(170px); opacity: 0; } }
+@keyframes twinkle { 0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(.82) rotate(8deg); opacity: .78; } }
+@keyframes sparkle { 0%, 70%, 100% { opacity: 0; transform: scale(.4); } 82% { opacity: 1; transform: scale(1.1); } }
+@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes halo { 0%, 100% { opacity: .75; } 50% { opacity: 1; } }
 
 .panel {
   background: var(--glass);
@@ -350,9 +364,102 @@ details.personal[open] summary::before { content: "−"; }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* ---------- grid spreads (love, career, moon) ---------- */
+.spread.grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 16px 12px; max-width: 620px; }
+.spread.grid .slot { width: calc((100% - 24px) / 3); max-width: 180px; }
+.spread-opt.moon span { border-color: var(--gold); background: rgba(169, 188, 208, .14); }
+
+/* ---------- card of the day ---------- */
+.daily { display: grid; grid-template-columns: 112px 1fr; gap: 18px; align-items: start; }
+.daily-card .tcard { width: 112px; }
+.daily-text h3 { margin: 4px 0 2px; font-family: var(--display); font-weight: 400; font-size: 24px; line-height: 1.15; }
+.daily-text p { margin: 0 0 6px; }
+.daily-text .kw { font-style: italic; color: #ecdcb8; }
+.daily-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px !important; }
+.daily-meta span { font-family: var(--sc); font-size: 14px; letter-spacing: .04em; border: 1px solid var(--glass-line); border-radius: 999px; padding: 2px 10px; color: #ecdcb8; }
+.daily-meta .streak { border-color: var(--gold); color: var(--gold-hi); }
+.homelinks { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: center; }
+.homelinks .check { font-size: 16px; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+
+/* ---------- viewer + share ---------- */
+body.modal-open { overflow: hidden; }
+.viewer { position: fixed; inset: 0; z-index: 20; background: rgba(20, 8, 14, .72); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 10px); }
+.vbox { width: min(560px, 100%); max-height: 100%; display: flex; flex-direction: column; background: rgba(44, 20, 30, .92); border: 1px solid var(--glass-line); border-radius: 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, .5); overflow: hidden; }
+.vtop { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 0 18px; }
+.vcount { font-family: var(--sc); letter-spacing: .05em; color: var(--gold-hi); font-size: 15px; }
+.vscroll { overflow-y: auto; padding: 8px 20px 16px; }
+.vcard { width: min(64vw, 280px); margin: 4px auto 16px; border-radius: 10px; overflow: hidden; box-shadow: 0 14px 40px rgba(0, 0, 0, .5); }
+.vcard svg { width: 100%; height: auto; display: block; }
+.vcard.rev svg { transform: rotate(180deg); }
+.vtext h2 { font-size: 30px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0 6px; }
+.vtext p { margin: 0 0 10px; }
+.vtext .kw { font-style: italic; color: #ecdcb8; }
+.vtext .lens { padding-top: 10px; border-top: 1px solid var(--glass-line); }
+.vtext .lens b { font-family: var(--sc); font-weight: 400; color: var(--gold-hi); }
+.vlabel { font-family: var(--sc); letter-spacing: .05em; color: var(--gold-hi); margin: 14px 0 2px !important; font-size: 16px; }
+.vnav { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; border-top: 1px solid var(--glass-line); }
+.vnav [hidden] + button { margin-left: auto; }
+.share img { width: 100%; height: auto; display: block; border-radius: 10px; min-height: 120px; background: rgba(255, 255, 255, .04); }
+.share .vscroll p { text-align: center; margin: 10px 0 0; }
+
+/* ---------- notes, journal stats, backup ---------- */
+.mynotes h2 { font-size: 26px; margin-bottom: 8px; }
+.mynotes textarea { margin-bottom: 4px; }
+.outcomes { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 8px; }
+.chipbtn { font-family: var(--sc); font-size: 15px; letter-spacing: .04em; border: 1px solid var(--glass-line); background: rgba(255, 240, 210, .05); color: var(--parch); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.chipbtn[aria-pressed="true"] { border-color: var(--gold); background: rgba(217, 180, 94, .25); color: var(--gold-hi); }
+.jstats:empty { display: none; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+.stats div { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.stats b { font-family: var(--display); font-weight: 400; font-size: 32px; color: var(--gold-hi); font-variant-numeric: tabular-nums; }
+.stats span { font-size: 14px; color: #e6d6b2; line-height: 1.2; }
+.jstats p { margin: 0; }
+.link { background: none; border: 0; padding: 0; color: var(--gold-hi); text-decoration: underline; cursor: pointer; font: inherit; }
+.jout { align-self: flex-start; font-family: var(--sc); font-size: 13px; letter-spacing: .04em; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--glass-line); color: #ecdcb8; }
+.jout.o-yes { border-color: #9fbf7a; color: #cfe6b0; }
+.jout.o-no { border-color: #d98a5c; color: #f4bf96; }
+.jnote { font-style: italic; font-size: 16px; color: #ecdcb8; }
+.backup .vlabel { margin-top: 0 !important; }
+.backup p { margin: 0 0 10px; }
+.filebtn { position: relative; overflow: hidden; display: inline-flex; align-items: center; }
+.filebtn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+.clar { display: grid; grid-template-columns: 96px 1fr; gap: 16px; align-items: start; margin-top: 8px; }
+.clar .tcard { width: 96px; }
+.clar h3 { margin: 0 0 2px; font-family: var(--display); font-weight: 400; font-size: 23px; }
+.clar p { margin: 0 0 6px; }
+.clar .kw { font-style: italic; color: #ecdcb8; }
+.clarifier > p { margin: 0 0 10px; }
+.clarifier select { font: inherit; color: var(--ink); background: var(--parch); border: 1px solid var(--parch-dim); border-radius: 10px; padding: 8px 10px; max-width: 100%; }
+.shareq { justify-content: center; margin-bottom: 10px; }
+
+/* ---------- library ---------- */
+.libtools { display: flex; flex-direction: column; gap: 12px; }
+.libtools input[type="search"] { width: 100%; font: inherit; color: var(--ink); background: var(--parch); border: 1px solid var(--parch-dim); border-radius: 10px; padding: 10px 14px; }
+.libfilters { display: flex; flex-wrap: wrap; gap: 8px; }
+.libfilters button { font-family: var(--sc); font-size: 15px; letter-spacing: .04em; border: 1px solid var(--glass-line); background: rgba(255, 240, 210, .05); color: var(--parch); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.libfilters button[aria-pressed="true"] { border-color: var(--gold); background: rgba(217, 180, 94, .25); color: var(--gold-hi); }
+.libtools .hint { margin: 0; }
+.libgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 16px 12px; }
+.libcard { width: 100%; background: none; border: 0; padding: 0; cursor: pointer; display: flex; flex-direction: column; gap: 6px; text-align: center; color: var(--parch); }
+.libface { display: block; width: 100%; aspect-ratio: 300 / 520; border-radius: 7px; overflow: hidden; background: var(--back) center/cover; box-shadow: 0 6px 16px rgba(10, 4, 6, .45); transition: transform .2s; }
+.libface svg { width: 100%; height: 100%; display: block; }
+.libcard:hover .libface, .libcard:focus-visible .libface { transform: translateY(-4px); }
+.libname { font-family: var(--sc); font-size: 14px; letter-spacing: .03em; line-height: 1.2; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.libkw { font-size: 13px; font-style: italic; color: #e6d6b2; line-height: 1.2; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.foot .link { font-family: var(--sc); letter-spacing: .05em; }
+
+/* ---------- battery saver ---------- */
+body.still .lace, body.still .hero-svg * { animation-play-state: paused !important; }
+body.still .tcard:not(.flipped) .back { animation: none; }
+
 @media (min-width: 640px) {
   .fc { width: 84px; margin-right: -50px; }
   .spread.three { gap: 22px; }
+}
+@media (max-width: 400px) {
+  .daily { grid-template-columns: 92px 1fr; gap: 14px; }
+  .daily-card .tcard { width: 92px; }
 }
 @media (max-width: 520px) {
   .spreads { grid-template-columns: 1fr; gap: 8px; }
@@ -361,6 +468,8 @@ details.personal[open] summary::before { content: "−"; }
   .spread-opt b, .spread-opt small { grid-column: 2; }
 }
 @media (prefers-reduced-motion: reduce) {
+  .hero-svg * { animation: none !important; }
+  .hero-svg .sparkle { opacity: 1; }
   .lace { animation: none; }
   .view.active, .slot { animation: none; }
   .tcard .inner { transition: none; }
@@ -376,7 +485,7 @@ details.personal[open] summary::before { content: "−"; }
 
 <main id="app">
   <header class="top">
-    <button class="brand" type="button" data-go="home" aria-label="TarotParot home"><span id="mark"></span>TarotParot</button>
+    <button class="brand" type="button" data-go="home" aria-label="TarotParrot home"><span id="mark"></span>TarotParrot</button>
     <div class="navset">
       <button class="iconbtn" type="button" id="soundBtn" aria-pressed="true" aria-label="Sound and vibration on. Turn off" title="Sound and vibration">
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wave" d="M15.5 9.2a4 4 0 0 1 0 5.6M18 6.8a7.4 7.4 0 0 1 0 10.4"/><path class="mute" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
@@ -388,27 +497,25 @@ details.personal[open] summary::before { content: "−"; }
   <!-- 1. Ask -->
   <section class="view active" id="v-home" aria-labelledby="h-home">
     <div class="hero">
+      <div class="hero-art" id="heroArt"></div>
       <p class="eyebrow" id="skyLine">Tonight's sky</p>
       <h1 id="h-home">A little birdie told me.</h1>
       <p class="lede" id="lede">Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.</p>
     </div>
+    <section class="panel daily" id="daily" aria-label="Card of the day"></section>
     <form class="panel" id="askForm" autocomplete="off">
       <div class="field">
         <label for="q">Your question</label>
         <textarea id="q" rows="2" maxlength="280" placeholder="What do I need to know about…"></textarea>
       </div>
-      <fieldset class="spreads">
-        <legend>Choose a spread</legend>
-        <label class="spread-opt"><input type="radio" name="spread" value="single"><span><i class="minis"><i></i></i><b>Single Pull</b><small>One card for right now</small></span></label>
-        <label class="spread-opt"><input type="radio" name="spread" value="three" checked><span><i class="minis"><i></i><i></i><i></i></i><b>Past · Present · Future</b><small>Three cards</small></span></label>
-        <label class="spread-opt"><input type="radio" name="spread" value="celtic"><span><i class="minis many"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></i><b>Celtic Cross</b><small>Ten cards, the full story</small></span></label>
-      </fieldset>
+      <fieldset class="spreads" id="spreadOpts"><legend>Choose a spread</legend></fieldset>
       <div class="bday" id="bdayBox">
         <div class="bday-view" id="bdayView">
           <div class="bday-text">
             <p class="bday-label">Your birthday</p>
             <p class="bday-value" id="bdayValue">Not added yet</p>
             <p class="birthcard" id="birthCard"></p>
+            <p class="birthcard" id="yearCard"></p>
           </div>
           <div class="row left">
             <button class="btn ghost small" type="button" id="bdayEdit">Add your birthday</button>
@@ -429,9 +536,13 @@ details.personal[open] summary::before { content: "−"; }
       <label class="check" for="rev"><input type="checkbox" id="rev" checked> Include reversed cards</label>
       <button class="btn primary" type="submit">Begin the shuffle</button>
     </form>
+    <div class="homelinks">
+      <button class="btn ghost" type="button" data-go="library">Learn the cards</button>
+      <label class="check" for="still"><input type="checkbox" id="still"> Still background (saves battery)</label>
+    </div>
     <div class="install">
-      <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParot to your home screen</button>
-      <p class="hint" id="iosHint" hidden>To keep TarotParot on your home screen, tap Share, then Add to Home Screen.</p>
+      <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParrot to your home screen</button>
+      <p class="hint" id="iosHint" hidden>To keep TarotParrot on your home screen, tap Share, then Add to Home Screen.</p>
     </div>
   </section>
 
@@ -484,9 +595,12 @@ details.personal[open] summary::before { content: "−"; }
       <div class="notes">
         <article class="panel answer" id="answer" aria-live="polite"></article>
         <article class="panel summary" id="summary"></article>
+        <section class="panel clarifier" id="clarifier" hidden></section>
+        <section class="panel mynotes" id="myNotes"></section>
         <details class="panel entropy" id="entropy"></details>
         <p class="saved-line" id="savedLine"></p>
         <div class="row">
+          <button class="btn ghost" type="button" id="shareBtn">Share as image</button>
           <button class="btn ghost" type="button" id="copyBtn">Copy reading</button>
           <button class="btn primary" type="button" data-go="home">New reading</button>
         </div>
@@ -497,15 +611,57 @@ details.personal[open] summary::before { content: "−"; }
   <!-- 6. Journal -->
   <section class="view" id="v-journal" aria-labelledby="h-journal">
     <h2 id="h-journal">Your journal</h2>
+    <div class="panel jstats" id="jstats"></div>
     <ul class="jlist" id="jlist"></ul>
+    <div class="panel backup">
+      <p class="vlabel">Back up your journal</p>
+      <p class="hint">Your journal lives only on this device. Save a backup file, and restore it on a new phone or after clearing your browser.</p>
+      <div class="row left">
+        <button class="btn ghost small" type="button" id="backupBtn">Download backup</button>
+        <label class="btn ghost small filebtn" for="restoreFile">Restore from backup<input type="file" id="restoreFile" accept="application/json,.json"></label>
+      </div>
+      <p class="hint" id="backupNote"></p>
+    </div>
   </section>
 
-  <footer class="foot">TarotParot · an <a href="https://amarisct.github.io/Amaris/">amaris ct</a> project</footer>
+  <!-- 7. Card library -->
+  <section class="view" id="v-library" aria-labelledby="h-library">
+    <h2 id="h-library">Learn the cards</h2>
+    <p class="instr">All 78 cards, upright and reversed. Tap any card to read it in full.</p>
+    <div class="panel libtools">
+      <label for="libSearch" class="sr">Search the cards</label>
+      <input type="search" id="libSearch" placeholder="Search by name or meaning, like “love” or “Queen”" autocomplete="off">
+      <div class="libfilters" id="libFilters" role="group" aria-label="Filter by suit">
+        <button type="button" data-f="all">All</button><button type="button" data-f="major">Major Arcana</button><button type="button" data-f="wands">Wands</button><button type="button" data-f="cups">Cups</button><button type="button" data-f="swords">Swords</button><button type="button" data-f="pentacles">Pentacles</button>
+      </div>
+      <p class="hint" id="libCount" aria-live="polite"></p>
+    </div>
+    <ul class="libgrid" id="libGrid"></ul>
+  </section>
+
+  <footer class="foot"><button class="link" type="button" data-go="library">Learn the cards</button> · TarotParrot · an <a href="https://amarisct.github.io/Amaris/">amaris ct</a> project</footer>
 </main>
 <div class="toast" id="toast" role="status"></div>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Card">
+  <div class="vbox">
+    <div class="vtop"><span class="vcount" id="vCount"></span><button class="iconbtn" type="button" id="vClose" aria-label="Close">✕</button></div>
+    <div class="vscroll">
+      <div class="vcard" id="vCard"></div>
+      <div class="vtext" id="vText"></div>
+    </div>
+    <div class="vnav"><button class="btn ghost small" type="button" id="vPrev">‹ Previous</button><button class="btn ghost small" type="button" id="vNext">Next ›</button></div>
+  </div>
+</div>
+<div class="viewer" id="shareView" hidden role="dialog" aria-modal="true" aria-label="Share your reading">
+  <div class="vbox share">
+    <div class="vtop"><span class="vcount">Share your reading</span><button class="iconbtn" type="button" id="shareClose" aria-label="Close">✕</button></div>
+    <div class="vscroll"><label class="check shareq" id="shareQRow" for="shareQ"><input type="checkbox" id="shareQ"> Show my question on the image</label><img id="shareImg" alt="Your reading as an image"><p class="hint" id="shareStatus"></p></div>
+    <div class="vnav"><button class="btn primary small" type="button" id="shareNative" hidden>Share</button><button class="btn ghost small" type="button" id="shareDownload">Download image</button></div>
+  </div>
+</div>
 
 <script>
-/* ===== The deck: 78 cards, meanings written for TarotParot ===== */
+/* ===== The deck: 78 cards, meanings written for TarotParrot ===== */
 const SUITS = {
   wands:     { name: "Wands",     element: "Fire",  domain: "drive, creativity and ambition" },
   cups:      { name: "Cups",      element: "Water", domain: "feelings and relationships" },
@@ -655,13 +811,21 @@ function analyzeQuestion(q) {
     if (n > bestN) { best = tp; bestN = n; }
   }
   let type = "open";
-  if (/^\s*(when|how (long|soon))\b/.test(t)) type = "when";
+  const WHO = "(he|she|they|him|her|them|my [a-z]+|[a-z]+)";
+  if (new RegExp("\\bhow (does|do|did|will|would|is) " + WHO + " (really |truly |actually )?(feel|see|think of|view)\\b").test(t)
+    || new RegExp("\\bwhat (does|do|did) " + WHO + " (really |truly |actually )?(think|feel)\\b").test(t)
+    || /\bwhat are (his|her|their) (true |real )?(feelings|intentions)\b/.test(t) || /\b(his|her|their) feelings (for|about|towards|toward) me\b/.test(t)) type = "feel";
+  else if (/^\s*(when|how (long|soon))\b/.test(t)) type = "when";
+  else if (/^\s*how (will|is|did|are|was|would) .*\b(go|going|turn out|work out|end|play out|unfold)\b/.test(t) || /^\s*what (will|is going to) (happen|come)/.test(t) || /^\s*what('s| is) (coming|ahead|next)\b/.test(t)) type = "outcome";
+  else if (/^\s*what (should|do|can|could) (i|we) do\b|^\s*what('s| is) my next (step|move)\b|^\s*what (should|do) i need to do\b/.test(t)) type = "how";
   else if (/^\s*(should|will|is|are|am|does|do|did|can|could|would|has|have|was|were|shall|won't|isn't|am i)\b/.test(t) || /\bshould i\b|\bwill (he|she|they|i|it|we)\b/.test(t)) type = "yesno";
-  else if (/^\s*how\b/.test(t)) type = "how";
+  else if (/^\s*how (can|do|should|could|would|might|to|best|much)\b/.test(t) || /^\s*how\b/.test(t)) type = "how";
   else if (/^\s*why\b/.test(t)) type = "why";
   const pm = t.match(/\bmy (best friend|partner|boyfriend|girlfriend|husband|wife|crush|ex|boss|manager|friend|mom|mum|mother|dad|father|sister|brother|son|daughter|child|coworker|colleague|team|client|landlord|teacher)\b/);
   const person = pm ? "your " + pm[1] : (/\b(he|she|him|her|they|them|his)\b/.test(t) ? "the person you're asking about" : null);
-  return (_qa[q] = { topic: best, type, person });
+  const sub = pm ? "your " + pm[1] : /\bshe\b|\bher\b/.test(t) ? "she" : /\bhe\b|\bhim\b|\bhis\b/.test(t) ? "he" : /\bthey\b|\bthem\b|\btheir\b/.test(t) ? "they" : null;
+  if (type === "feel" && !best) best = TOPICS[0];
+  return (_qa[q] = { topic: best, type, person, sub });
 }
 function lensFor(topic, card, rev) {
   if (!topic) return "";
@@ -722,13 +886,20 @@ const mean = c => c.rev ? c.rvM : c.upM;
 const kws = c => { const p = (c.rev ? c.rv : c.up).split(" · "); return p.length > 1 ? p[0] + " and " + p[1] : p[0]; };
 // which card plays which part, per spread
 function roles(spread, cards) {
+  if (spread === "decision") return { now: cards[2], block: cards[2], out: cards[3], adv: cards[3], root: cards[2], a: cards[0], b: cards[1] };
+  if (spread === "growth") return { now: cards[0], block: cards[1], out: cards[2], adv: cards[2], root: cards[0] };
+  if (spread === "love") return { now: cards[2], block: cards[3], out: cards[4], adv: cards[0], root: cards[0] };
+  if (spread === "career") return { now: cards[0], block: cards[2], out: cards[3], adv: cards[3], root: cards[1] };
+  if (spread === "newmoon") return { now: cards[0], block: cards[1], out: cards[3], adv: cards[2], root: cards[1] };
+  if (spread === "fullmoon") return { now: cards[0], block: cards[2], out: cards[4], adv: cards[4], root: cards[1] };
   if (spread === "celtic") return { now: cards[0], block: cards[1], root: cards[2], past: cards[3], out: cards[9], adv: cards[6], fear: cards[8] };
   if (spread === "three") return { past: cards[0], now: cards[1], out: cards[2], adv: cards[1], root: cards[0] };
   return { now: cards[0], out: cards[0], adv: cards[0], root: cards[0] };
 }
-function answerReading(r) {
+function answerReading(r, positions) {
   const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
-  const A = analyzeQuestion(r.question), R = roles(r.spread, cards), single = cards.length === 1;
+  const A0 = analyzeQuestion(r.question), R = roles(r.spread, cards), single = cards.length === 1;
+  const A = Object.assign({}, A0, { type: r.spread === "yesno" ? "yesno" : A0.type });
   const q = r.question ? youify(r.question) : "";
   const isShould = /^\s*should\b/i.test(r.question || "") || /\bshould i\b/i.test(r.question || "");
   const lens = c => A.topic ? lensFor(A.topic, c, c.rev) : "";
@@ -736,11 +907,23 @@ function answerReading(r) {
   // the story the cards tell, in their positions
   const story = single
     ? `${nmEnd(R.now)} came up for this. ${mean(R.now)}`
-    : r.spread === "three"
+    : !["three", "celtic"].includes(r.spread) && positions
+      ? positions.map((p, i) => `${p.t}: ${nmEnd(cards[i])}, ${kws(cards[i])}.`).join(" ")
+      : r.spread === "three"
       ? `Looking back, ${nm(R.past)} shows this grew out of ${kws(R.past)}. Right now, ${nmEnd(R.now)} says ${lc(first(mean(R.now)))} Ahead, ${nm(R.out)} points to ${kws(R.out)}.`
       : `At the heart of it is ${nmEnd(R.now)}: ${lc(first(mean(R.now)))} What stands in your way is ${nmEnd(R.block)}, which means ${kws(R.block)}. Underneath it all sits ${nmEnd(R.root)}, ${kws(R.root)}. Where this is heading is ${nmEnd(R.out)}: ${lc(first(mean(R.out)))}`;
   const advice = single ? (rest(mean(R.adv)) || first(mean(R.adv))) : first(mean(R.adv)) + (rest(mean(R.adv)) ? " " + rest(mean(R.adv)) : "");
-  if (A.type === "yesno") {
+  if (r.spread === "decision") {
+    const score = c => (c.rev ? -1 : 1) + (YES_LEAN[c.id] && !c.rev ? YES_LEAN[c.id] : 0) - (NO_LEAN[c.id] && !c.rev ? NO_LEAN[c.id] : 0);
+    const m = (r.question || "").replace(/[?.!]+$/, "").match(/^(?:should|do|can|could|would|will)\s+i\s+(.+?)\s+or\s+(.+)$/i) || (r.question || "").replace(/[?.!]+$/, "").match(/^(.+?)\s+or\s+(.+)$/i);
+    const nameA = m ? youify(m[1]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option A", nameB = m ? youify(m[2]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option B";
+    const sa = score(R.a), sb = score(R.b);
+    verdict = sa === sb ? "Both paths are close. The deciding factor matters more than the choice." : `${(sa > sb ? nameA : nameB).replace(/^./, x => x.toUpperCase())} looks stronger.`;
+    lines.push(`If you ${nameA === "option A" ? "choose option A" : nameA}: ${nmEnd(R.a)}, ${kws(R.a)}. ${first(mean(R.a))}`);
+    lines.push(`If you ${nameB === "option B" ? "choose option B" : nameB}: ${nmEnd(R.b)}, ${kws(R.b)}. ${first(mean(R.b))}`);
+    lines.push(`Either way, ${nmEnd(cards[2])} shows the tradeoff: ${kws(cards[2])}. What to weigh most: ${lc(first(mean(cards[3])))}`);
+    if (!m) lines.push(`Tip: ask it as "Should I ___ or ___?" and the birdie will name both options.`);
+  } else if (A.type === "yesno") {
     const pool = single ? cards : cards.concat([R.out, R.out]);
     const yn = yesNo(pool);
     verdict = {
@@ -763,6 +946,21 @@ function answerReading(r) {
     verdict = whenVerdict(cards);
     lines.push(story);
     lines.push(`What speeds it up: ${lc(advice)}`);
+  } else if (A.type === "feel") {
+    const them = r.spread === "love" ? cards[1] : r.spread === "celtic" ? cards[7] : r.spread === "three" ? cards[1] : cards[0];
+    const sub = A.sub || "they", poss = sub === "she" ? "Her" : sub === "he" ? "His" : sub === "they" ? "Their" : sub.charAt(0).toUpperCase() + sub.slice(1) + "'s";
+    const FL = LENS[(A.topic || TOPICS[0]).key], feel = them.arcana === "major" ? FL.major : FL[them.suit];
+    verdict = `${poss} feelings: ${kws(them)}.`;
+    lines.push(`The card for ${sub === "they" ? "them" : sub === "she" ? "her" : sub === "he" ? "him" : sub} is ${nmEnd(them)}. ${feel[them.rev ? 1 : 0]}`);
+    lines.push(them.rev
+      ? `Reversed, it suggests the feelings are there but held back, confused or not being shown. That is about ${sub === "they" ? "where they are" : sub === "she" ? "where she is" : sub === "he" ? "where he is" : "where they are"}, not about your worth.`
+      : `Upright, these feelings are fairly open and active right now.`);
+    if (!single) lines.push(`Where it's heading: ${nmEnd(R.out)}, ${kws(R.out)}. ${R.adv !== them ? `Your best move: ${lc(first(mean(R.adv)))}` : ""}`.trim());
+  } else if (A.type === "outcome") {
+    verdict = `It's heading toward ${kws(R.out)}.`;
+    lines.push(story);
+    if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
+    lines.push(`To make the most of it: ${lc(advice)}`);
   } else if (A.type === "how") {
     verdict = `Here's how: ${kws(R.adv)}.`;
     lines.push(`Your guide is ${nmEnd(R.adv)}. ${advice}`);
@@ -783,7 +981,7 @@ function answerReading(r) {
   return { question: q, verdict, lines };
 }
 
-/* ===== Original card art for TarotParot, drawn as SVG ===== */
+/* ===== Original card art for TarotParrot, drawn as SVG ===== */
 const ART = (() => {
   const INK = "#4a2f17";
   const f = n => Math.round(n * 10) / 10;
@@ -946,7 +1144,7 @@ const ART = (() => {
     return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${f(Math.min(w, h) / 2)}" fill="#7d5230" stroke="${INK}" stroke-width="1"/>`;
   }
 
-  /* ---------- the parrot (TarotParot's mascot), feet at 0,0, facing left ---------- */
+  /* ---------- the parrot (TarotParrot's mascot), feet at 0,0, facing left ---------- */
   function parrot(c, x, y, s = 1, o = {}) {
     const sil = o.silhouette, G = c.G;
     const fill = col => sil ? G : col;
@@ -1158,16 +1356,42 @@ const ART = (() => {
       + "</svg>";
   }
 
+
+  /* ---------- home-screen hero: the parrot on a living crystal ball ---------- */
+  function hero() {
+    const u = "hr", c = ctx(u);
+    const sparkle = (x, y, r, d) => `<g class="sparkle" style="animation-delay:${d}s;transform-origin:${x}px ${y}px">${starN(c, x, y, r, r * .28, 4)}</g>`;
+    return `<svg class="hero-svg" viewBox="40 20 440 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The TarotParrot parrot perched on a glowing crystal ball beside a gold star"><defs>${gold(u)}
+<radialGradient id="orb${u}" cx=".4" cy=".36" r=".72"><stop offset="0" stop-color="#f7f6f2"/><stop offset=".5" stop-color="#c3cddb"/><stop offset="1" stop-color="#5f708c"/></radialGradient>
+<radialGradient id="halo${u}" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".55"/><stop offset="1" stop-color="#ffe7a8" stop-opacity="0"/></radialGradient>
+<clipPath id="clip${u}"><circle cx="256" cy="330" r="84"/></clipPath>
+<filter id="soft${u}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+<linearGradient id="sh${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<circle class="halo" cx="256" cy="330" r="150" fill="url(#halo${u})"/>
+<g class="star-main" style="transform-origin:350px 150px">${star8(c, 350, 150, 58, 30, 9)}</g>
+${sparkle(410, 238, 11, 0)}${sparkle(118, 186, 9, 1.3)}${sparkle(170, 92, 7, 2.6)}${sparkle(396, 64, 8, 3.4)}
+<path d="M196 430C200 404 214 392 256 392C298 392 312 404 316 430Z" fill="#5a3a22" stroke="${INK}" stroke-width="1.5"/><rect x="186" y="424" width="140" height="16" rx="5" fill="${c.G}" stroke="${INK}" stroke-width="1.5"/>
+<circle cx="256" cy="330" r="86" fill="url(#orb${u})"/>
+<g clip-path="url(#clip${u})"><g class="swirl" style="transform-origin:256px 330px" filter="url(#soft${u})">
+<ellipse cx="226" cy="300" rx="62" ry="30" fill="#e08c70" opacity=".6"/><ellipse cx="292" cy="346" rx="58" ry="28" fill="#6f93ae" opacity=".65"/><ellipse cx="250" cy="372" rx="50" ry="22" fill="#d9a843" opacity=".55"/><ellipse cx="280" cy="292" rx="34" ry="20" fill="#9a6fb0" opacity=".55"/>
+</g><g class="shimmer"><rect x="150" y="240" width="60" height="190" fill="url(#sh${u})" transform="rotate(24 180 335)"/></g>
+<ellipse cx="228" cy="296" rx="30" ry="18" fill="#fff" opacity=".45"/></g>
+<circle cx="256" cy="330" r="86" fill="none" stroke="${c.G}" stroke-width="4"/>
+<g class="bob">${parrot(c, 250, 250, .9)}</g>
+</svg>`;
+  }
+
   /* small logo mark for the header */
   function mark() {
     const u = "mk", c = ctx(u);
     return `<svg viewBox="-70 -205 130 215" width="26" height="42" aria-hidden="true"><defs>${gold(u)}</defs>${parrot(c,0,0,1)}</svg>`;
   }
 
-  return { face, back, icon, mark, ROMAN };
+  return { face, back, icon, mark, hero, ROMAN };
 })();
 
-/* ===== TarotParot app ===== */
+/* ===== TarotParrot app ===== */
 (() => {
 "use strict";
 const $ = (s, r = document) => r.querySelector(s);
@@ -1186,11 +1410,11 @@ const DEV = IS_TOUCH ? "phone" : "computer";
 const COPY = IS_TOUCH ? {
   lede: "Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.",
   instr: "Swirl your finger over the cards. Shake your phone too, if you like. Stop when it feels right.",
-  l1: "Touch", l2: "Motion", install: "Add TarotParot to your home screen"
+  l1: "Touch", l2: "Motion", install: "Add TarotParrot to your home screen"
 } : {
   lede: "Every deck here is shuffled by you: the way you move your mouse, the rhythm of your typing, the moon and the minute you ask. No two shuffles are ever the same.",
   instr: "Swirl your mouse over the cards. Scroll over them or tap a few keys too, if you like. Stop when it feels right.",
-  l1: "Mouse", l2: "Scroll", install: "Install TarotParot as an app"
+  l1: "Mouse", l2: "Scroll", install: "Install TarotParrot as an app"
 };
 
 /* ---------- the sky right now ---------- */
@@ -1248,6 +1472,42 @@ const SPREADS = {
     { t: "The Outcome", d: "where this is likely to lead" }
   ] }
 };
+Object.assign(SPREADS, {
+  yesno: { name: "Yes or No", positions: [{ t: "Your answer", d: "a clear yes, no or not yet" }] },
+  love: { name: "Love Spread", positions: [
+    { t: "You", d: "what you bring to this" }, { t: "Them", d: "what they bring, or the love you're seeking" },
+    { t: "The Connection", d: "what flows between you" }, { t: "What's in the Way", d: "the block or the lesson" }, { t: "Where It's Going", d: "where this is heading" }] },
+  career: { name: "Career Spread", positions: [
+    { t: "Where You Stand", d: "your work life right now" }, { t: "Your Strength", d: "what you have going for you" },
+    { t: "The Obstacle", d: "what's holding you back" }, { t: "Your Next Step", d: "what to do next" }] },
+  decision: { name: "Decision Spread", positions: [
+    { t: "Option A", d: "the first path" }, { t: "Option B", d: "the second path" }, { t: "The Tradeoff", d: "what you gain or give up either way" }, { t: "What to Weigh", d: "the deciding factor" }] },
+  growth: { name: "Personal Growth", positions: [
+    { t: "The Pattern", d: "what keeps repeating" }, { t: "The Obstacle", d: "what holds it in place" }, { t: "The Action", d: "the step that breaks it" }] },
+  newmoon: { name: "New Moon Spread", moon: "new", positions: [
+    { t: "What to Plant", d: "the intention for this cycle" }, { t: "What to Release", d: "what to clear away first" },
+    { t: "What Will Help", d: "your support and resources" }, { t: "What Will Grow", d: "what this cycle can bring" }] },
+  fullmoon: { name: "Full Moon Spread", moon: "full", positions: [
+    { t: "What's Coming to Light", d: "what the full moon reveals" }, { t: "What's Complete", d: "what has finished" },
+    { t: "What to Release", d: "what to let go of" }, { t: "What to Celebrate", d: "what you've achieved" }, { t: "Where to Go Next", d: "the next step forward" }] }
+});
+const SPREAD_INFO = {
+  single: "One card for right now", yesno: "A quick, clear answer", three: "Three cards", love: "Five cards for the heart",
+  career: "Four cards for your work", decision: "Choosing between two paths", growth: "Pattern, obstacle, action", celtic: "Ten cards, the full story", newmoon: "Shown at the new moon", fullmoon: "Shown at the full moon"
+};
+const LAYOUT = k => ({ single: "single", yesno: "single", three: "three", celtic: "celtic" })[k] || "grid";
+function moonSpreadNow() { const i = moonInfo(new Date()).idx; return [0, 1, 7].includes(i) ? "newmoon" : [3, 4, 5].includes(i) ? "fullmoon" : null; }
+function renderSpreadOpts(selected) {
+  const keys = ["single", "yesno", "three", "love", "career", "decision", "growth", "celtic"];
+  const m = moonSpreadNow(); if (m) keys.splice(1, 0, m);
+  if (!keys.includes(selected)) selected = "three";
+  $("#spreadOpts").innerHTML = '<legend>Choose a spread</legend>' + keys.map(k => {
+    const n = SPREADS[k].positions.length;
+    return `<label class="spread-opt${SPREADS[k].moon ? " moon" : ""}"><input type="radio" name="spread" value="${k}"${k === selected ? " checked" : ""}><span><i class="minis${n > 5 ? " many" : ""}">${"<i></i>".repeat(n)}</i><b>${SPREADS[k].name}</b><small>${SPREAD_INFO[k]}</small></span></label>`;
+  }).join("");
+}
+renderSpreadOpts((store.get("tp.prefs", {}) || {}).spread || "three");
+
 // Celtic Cross layout: centers as fractions of the spread's width (the box is 1 wide × 1.24 tall)
 const CELTIC = [[.36,.62],[.36,.62],[.36,.93],[.17,.62],[.36,.31],[.55,.62],[.88,1.093],[.88,.778],[.88,.464],[.88,.149]];
 
@@ -1402,7 +1662,7 @@ function go(name) {
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "v-" + name));
   window.scrollTo(0, 0);
   if (prev === "shuffle" && name !== "shuffle") stopMotion();
-  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal })[name]?.();
+  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal, library: enterLibrary })[name]?.();
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -1410,10 +1670,11 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-go]"
 const prefs = store.get("tp.prefs", {});
 let savedBday = prefs.bday || "";
 if (prefs.reversals === false) $("#rev").checked = false;
-if (prefs.spread && SPREADS[prefs.spread]) { const r = $(`input[name="spread"][value="${prefs.spread}"]`); if (r) r.checked = true; }
+
 function prettyDate(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }); }
 function savePrefs() { store.set("tp.prefs", { bday: savedBday, reversals: $("#rev").checked, spread: ($('input[name="spread"]:checked') || {}).value || "three" }); }
 function showBirthday() {
+  if (typeof showYearCard === "function") try { showYearCard(); } catch (e) { /* not ready yet */ }
   const c = birthCard(savedBday);
   $("#bdayValue").textContent = savedBday ? prettyDate(savedBday) : "Not added yet";
   $("#birthCard").textContent = c ? `Your birth card is ${c.name}.` : "Add it to find your birth card and weave it into every shuffle.";
@@ -1438,6 +1699,8 @@ $("#bday").addEventListener("keydown", e => { if (e.key === "Enter") { e.prevent
 showBirthday();
 
 function enterHome() {
+  renderDaily(); showYearCard();
+  renderSpreadOpts(($('input[name="spread"]:checked') || {}).value || (store.get("tp.prefs", {}) || {}).spread || "three");
   Ent.reset(); S.deck = null; S.picks = []; S.reading = null; S.saved = false;
   $("#skyLine").textContent = skyLine();
 }
@@ -1657,7 +1920,7 @@ $("#piles").addEventListener("click", e => {
 const need = () => SPREADS[S.spread].positions.length;
 function enterPick() {
   const n = need(); S.picks = [];
-  $("#pickInstr").textContent = n === 1 ? "Pick one card. Go with the first one your eye lands on." : `Pick ${n === 3 ? "three" : "ten"} cards. Go with the ones your eye lands on.`;
+  $("#pickInstr").textContent = n === 1 ? "Pick one card. Go with the first one your eye lands on." : `Pick ${["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n]} cards. Go with the ones your eye lands on.`;
   $("#pickSlots").innerHTML = Array.from({ length: n }, (_, i) => `<i>${i + 1}</i>`).join("");
   $("#fan").innerHTML = S.deck.map((c, i) => {
     const t = i / 77, y = Math.sin(t * Math.PI * 4) * 9 - Math.sin(t * Math.PI) * 14, a = Math.cos(t * Math.PI * 4) * 4 + (t - .5) * 10;
@@ -1719,7 +1982,7 @@ function renderReading(r, revealed) {
   $("#readMeta").textContent = `${sp.name}${A.topic ? " · " + A.topic.tag : ""} · ${dateOf(when)}`;
   $("#qEcho").textContent = r.question ? `“${r.question}”` : "An open reading";
   const el = $("#spread");
-  el.className = "spread " + r.spread;
+  el.className = "spread " + LAYOUT(r.spread);
   el.innerHTML = r.cards.map((c, i) => slotHTML(r, c, i, revealed)).join("");
   $("#notes").innerHTML = r.cards.map((c, i) => noteHTML(r, c, i, revealed)).join("");
   $("#revealAll").parentElement.hidden = revealed;
@@ -1727,7 +1990,7 @@ function renderReading(r, revealed) {
   if (revealed) renderAfter(r);
 }
 function flip(i) {
-  const r = S.reading, b = $(`.tcard[data-i="${i}"]`);
+  const r = S.reading, b = $(`#spread .tcard[data-i="${i}"]`);
   if (!r || !b || b.dataset.turned) return;
   b.dataset.turned = "1";
   const c = r.cards[i], card = DECK[c.id], pos = SPREADS[r.spread].positions[i];
@@ -1736,12 +1999,12 @@ function flip(i) {
   requestAnimationFrame(() => b.classList.add("flipped"));
   b.setAttribute("aria-label", `${pos.t}: ${card.name}${c.rev ? ", reversed" : ""}`);
   $("#note-" + i).outerHTML = noteHTML(r, c, i, true);
-  if ($$(".tcard").every(t => t.dataset.turned)) setTimeout(finish, reduceMotion ? 0 : 700);
+  if ($$("#spread .tcard").every(t => t.dataset.turned)) setTimeout(finish, reduceMotion ? 0 : 700);
 }
 $("#spread").addEventListener("click", e => {
   const b = e.target.closest(".tcard"); if (!b) return;
   const i = +b.dataset.i;
-  if (b.dataset.turned || b.classList.contains("flipped")) { const n = $("#note-" + i); if (n) n.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); return; }
+  if (b.dataset.turned || b.classList.contains("flipped")) { openViewer(S.reading.cards.map((c, k) => ({ id: c.id, rev: c.rev, pos: SPREADS[S.reading.spread].positions[k], q: S.reading.question })), i); return; }
   flip(i);
 });
 $("#revealAll").addEventListener("click", () => {
@@ -1799,7 +2062,7 @@ function synth(r) {
 }
 function parrotLine(r) {
   const A = analyzeQuestion(r.question);
-  if (A.type === "yesno") return `A little birdie told me: ${yesNo(r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }))).short}.`;
+  if (A.type === "yesno" || r.spread === "yesno") return `A little birdie told me: ${yesNo(r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }))).short}.`;
   const c = DECK[r.cards[r.cards.length - 1].id], rev = r.cards[r.cards.length - 1].rev;
   return `A little birdie told me: ${kw2(rev ? c.rv : c.up)}.`;
 }
@@ -1824,21 +2087,22 @@ function entropyHTML(rep) {
   return `<summary>What shaped your shuffle</summary><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl><p class="fp">Shuffle fingerprint <code>${fp}</code></p><p class="hint">All of this stayed on your ${kind}. Nothing was sent anywhere, and the same mix can never happen twice.</p>`;
 }
 function answerHTML(r) {
-  const a = answerReading(r);
+  const a = answerReading(r, SPREADS[r.spread].positions);
   return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map(l => `<p>${esc(l)}</p>`).join("")}`;
 }
 function renderAfter(r) {
   $("#answer").innerHTML = answerHTML(r);
+  renderMyNotes(r); renderClarifier(r);
   $("#summary").innerHTML = `<h2>The bigger picture</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
   $("#entropy").innerHTML = entropyHTML(r.report);
   $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
 }
 function readingText(r) {
   const sp = SPREADS[r.spread];
-  const lines = [`TarotParot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
+  const lines = [`TarotParrot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
   const A = analyzeQuestion(r.question);
   r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
-  const a = answerReading(r);
+  const a = answerReading(r, SPREADS[r.spread].positions);
   lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines, "", ...synth(r), "", parrotLine(r));
   if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
   return lines.join("\n");
@@ -1862,8 +2126,9 @@ function saveReading(r) {
 function updateJCount() { const n = journal().length; $("#jcount").textContent = n ? String(n) : ""; }
 function enterJournal() {
   const j = journal();
+  renderJStats();
   if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
-  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span></button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
+  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span>${r.outcome ? `<span class="jout o-${esc(r.outcome)}">${esc((OUTCOMES.find(o => o[0] === r.outcome) || ["", ""])[1])}</span>` : ""}${r.note ? `<span class="jnote">${esc(r.note.slice(0, 120))}${r.note.length > 120 ? "…" : ""}</span>` : ""}</button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
 }
 $("#jlist").addEventListener("click", e => {
   const del = e.target.closest(".jdel");
@@ -1892,7 +2157,10 @@ function rasterize(svg, w, h) {
 }
 rasterize(ART.back(), 360, 624).then(u => { if (u) document.documentElement.style.setProperty("--back", `url("${u}")`); });
 $("#mark").innerHTML = ART.mark();
+$("#heroArt").innerHTML = ART.hero();
 
+const Sky = { redraw() {}, resume() {} };
+const Still = { on: store.get("tp.still", false) === true };
 function startSky() {
   const cv = $("#sky");
   const gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
@@ -1903,7 +2171,7 @@ vec2 h2(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return
 float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(dot(h2(i),f),dot(h2(i+vec2(1.,0.)),f-vec2(1.,0.)),u.x),mix(dot(h2(i+vec2(0.,1.)),f-vec2(0.,1.)),dot(h2(i+vec2(1.,1.)),f-vec2(1.,1.)),u.x),u.y);}
 float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<4;i++){v+=a*n(p);p=m*p;a*=.5;}return v;}
 void main(){
- vec2 uv=gl_FragCoord.xy/r.y;float T=t*.05;
+ vec2 uv=gl_FragCoord.xy/r.y;float T=t*.018;
  vec2 q=vec2(fbm(uv*1.1+vec2(0.,T)),fbm(uv*1.1+vec2(5.2,1.3)-vec2(T*.8,0.)));
  vec2 p=uv*1.45+2.4*q+vec2(T*.3,-T*.2);
  vec3 C[9];
@@ -1939,9 +2207,17 @@ void main(){
     gl.uniform2f(uR, w, h); gl.uniform1f(uT, offset + (now - t0) / 1000);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
-  function frame(now) { if (!document.hidden && now - last > 33) { last = now; draw(now); } requestAnimationFrame(frame); }
-  if (reduceMotion) { draw(performance.now()); addEventListener("resize", () => draw(performance.now())); }
-  else requestAnimationFrame(frame);
+  let running = false;
+  function frame(now) {
+    if (Still.on || reduceMotion) { running = false; return; }
+    if (!document.hidden && now - last > 33) { last = now; draw(now); }
+    requestAnimationFrame(frame);
+  }
+  Sky.redraw = () => draw(performance.now());
+  Sky.resume = () => { if (!running && !Still.on && !reduceMotion) { running = true; requestAnimationFrame(frame); } };
+  draw(performance.now());
+  addEventListener("resize", () => { if (Still.on || reduceMotion) draw(performance.now()); });
+  Sky.resume();
 }
 startSky();
 
@@ -1957,6 +2233,281 @@ $("#installBtn").addEventListener("click", async () => {
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
 if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone && !inFrame) $("#iosHint").hidden = false;
 if (!inFrame) { try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) { /* not allowed here */ } }
+
+/* ---------- big card viewer ---------- */
+let VIEW = { list: [], i: 0, lastFocus: null };
+function viewerBody(item) {
+  const k = DECK[item.id], rev = !!item.rev, both = item.both;
+  const A = item.q != null ? analyzeQuestion(item.q) : {}, lens = A.topic ? lensFor(A.topic, k, rev) : "";
+  const meta = k.arcana === "major" ? `Major Arcana · ${ART.ROMAN[k.num]}` : `${SUITS[k.suit].name} · ${SUITS[k.suit].element}`;
+  let h = `<p class="eyebrow">${item.pos ? esc(item.pos.t) + " · " + esc(item.pos.d) : meta}</p><h2>${esc(k.name)}${rev ? ' <span class="chip">Reversed</span>' : ""}</h2>`;
+  if (both) {
+    h += `<p class="vlabel">Upright</p><p class="kw">${k.up}</p><p>${k.upM}</p><p class="vlabel">Reversed</p><p class="kw">${k.rv}</p><p>${k.rvM}</p>`;
+    if (k.suit) h += `<p class="hint">${SUITS[k.suit].name} are the suit of ${SUITS[k.suit].element.toLowerCase()}: ${SUITS[k.suit].domain}.${k.rank <= 10 ? ` As a ${RANKS[k.rank - 1].toLowerCase()}, it carries the energy of ${RANK_THEME[k.rank]}.` : ""}</p>`;
+    else h += `<p class="hint">The Major Arcana mark big life lessons and turning points, more than day-to-day events.</p>`;
+  } else {
+    h += `<p class="kw">${rev ? k.rv : k.up}</p><p>${rev ? k.rvM : k.upM}</p>${lens ? `<p class="lens"><b>For ${A.topic.label}:</b> ${lens}</p>` : ""}`;
+  }
+  return h;
+}
+function showViewer() {
+  const item = VIEW.list[VIEW.i], v = $("#viewer");
+  $("#vCard").className = "vcard" + (item.rev ? " rev" : "");
+  $("#vCard").innerHTML = ART.face(DECK[item.id]);
+  $("#vText").innerHTML = viewerBody(item);
+  $("#vPrev").hidden = $("#vNext").hidden = VIEW.list.length < 2;
+  $("#vCount").textContent = VIEW.list.length > 1 ? `${VIEW.i + 1} of ${VIEW.list.length}` : "";
+  v.querySelector(".vscroll").scrollTop = 0;
+}
+function openViewer(list, i) {
+  VIEW = { list, i, lastFocus: document.activeElement };
+  showViewer(); $("#viewer").hidden = false; document.body.classList.add("modal-open");
+  $("#vClose").focus();
+}
+function closeViewer() { $("#viewer").hidden = true; document.body.classList.remove("modal-open"); if (VIEW.lastFocus && VIEW.lastFocus.focus) VIEW.lastFocus.focus(); }
+function stepViewer(d) { if (VIEW.list.length < 2) return; VIEW.i = (VIEW.i + d + VIEW.list.length) % VIEW.list.length; Sound.flick(); showViewer(); }
+$("#vClose").addEventListener("click", closeViewer);
+$("#vPrev").addEventListener("click", () => stepViewer(-1));
+$("#vNext").addEventListener("click", () => stepViewer(1));
+$("#viewer").addEventListener("click", e => { if (e.target.id === "viewer") closeViewer(); });
+document.addEventListener("keydown", e => {
+  if (!$("#viewer").hidden) { if (e.key === "Escape") closeViewer(); if (e.key === "ArrowRight") stepViewer(1); if (e.key === "ArrowLeft") stepViewer(-1); }
+  else if (!$("#shareView").hidden && e.key === "Escape") closeShare();
+});
+let swipeX = null;
+$("#viewer").addEventListener("touchstart", e => { swipeX = e.touches[0].clientX; }, { passive: true });
+$("#viewer").addEventListener("touchend", e => { if (swipeX == null) return; const dx = e.changedTouches[0].clientX - swipeX; if (Math.abs(dx) > 60) stepViewer(dx < 0 ? 1 : -1); swipeX = null; });
+
+/* ---------- card of the day ---------- */
+const DKEY = "tp.daily.v1";
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function renderDaily() {
+  const now = new Date(), today = dayKey(now), y = new Date(now); y.setDate(y.getDate() - 1);
+  const st = store.get(DKEY, {}), drawn = st.date === today, m = moonInfo(now);
+  const alive = st.date === today || st.date === dayKey(y), streak = alive ? (st.streak || 0) : 0;
+  const k = drawn ? DECK[st.id] : null;
+  $("#daily").innerHTML = `<div class="daily-card"><button class="tcard dcard${drawn ? " flipped" : ""}${drawn && st.rev ? " rev" : ""}" type="button" id="dailyCard" aria-label="${drawn ? esc(k.name + (st.rev ? ", reversed" : "") + ". Tap to see it big") : "Draw today's card"}"><span class="inner"><span class="back"></span><span class="face">${drawn ? ART.face(k) : ""}</span></span></button></div>
+<div class="daily-text"><p class="eyebrow">Card of the day · ${esc(now.toLocaleDateString([], { month: "long", day: "numeric" }))}</p>
+${drawn ? `<h3>${esc(k.name)}${st.rev ? ' <span class="chip">Reversed</span>' : ""}</h3><p class="kw">${st.rev ? k.rv : k.up}</p><p>${esc(st.rev ? k.rvM : k.upM)}</p>`
+  : `<h3>Today's card is waiting</h3><p>Tap the card to draw it. You get one each day, and it stays the same until tomorrow.</p>`}
+<p class="daily-meta"><span>${moonName(m.name)}</span>${streak ? `<span class="streak">${streak}-day streak</span>` : ""}</p></div>`;
+}
+async function drawDaily() {
+  const now = new Date(), today = dayKey(now), y = new Date(now); y.setDate(y.getDate() - 1);
+  const st = store.get(DKEY, {});
+  if (st.date === today) { openViewer([{ id: st.id, rev: st.rev, pos: { t: "Card of the day", d: now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }) } }], 0); return; }
+  const r = new Uint32Array(2); crypto.getRandomValues(r);
+  const seed = await sha256(cat(enc.encode(JSON.stringify({ today, bday: savedBday, t: performance.now(), m: moonInfo(now).frac })), new Uint8Array(r.buffer)));
+  const id = ((seed[0] << 8) | seed[1]) % 78, rev = $("#rev").checked && seed[2] % 10 < 4;
+  const streak = st.date === dayKey(y) ? (st.streak || 0) + 1 : 1;
+  store.set(DKEY, { date: today, id, rev, streak });
+  const b = $("#dailyCard"); b.querySelector(".face").innerHTML = ART.face(DECK[id]); if (rev) b.classList.add("rev");
+  Sound.flip(); Haptic.buzz(18);
+  requestAnimationFrame(() => b.classList.add("flipped"));
+  setTimeout(() => { renderDaily(); if (streak > 1) { Sound.chime(true); toast(`${streak} days in a row`); } }, reduceMotion ? 0 : 900);
+}
+$("#daily").addEventListener("click", e => { if (e.target.closest("#dailyCard")) drawDaily(); });
+
+/* ---------- personal year card ---------- */
+function yearCard(iso, year) {
+  if (!iso) return null;
+  const [, m, d] = iso.split("-").map(Number);
+  let n = year + m + d; while (n > 21) n = String(n).split("").reduce((a, b) => a + Number(b), 0);
+  return DECK[n];
+}
+function showYearCard() {
+  const yr = new Date().getFullYear(), c = yearCard(savedBday, yr);
+  $("#yearCard").textContent = c ? `Your year card for ${yr} is ${c.name}: ${kw2(c.up)}.` : "";
+}
+
+/* ---------- card library ---------- */
+let LIB = { filter: "major", q: "" };
+const libObs = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(en => {
+  if (en.isIntersecting) { const el = en.target; el.innerHTML = ART.face(DECK[+el.dataset.id]); libObs.unobserve(el); }
+}), { rootMargin: "300px" }) : null;
+function libCards() {
+  const q = LIB.q.trim().toLowerCase();
+  return DECK.filter(k => (LIB.filter === "all" || (LIB.filter === "major" ? k.arcana === "major" : k.suit === LIB.filter))
+    && (!q || (k.name + " " + k.up + " " + k.rv).toLowerCase().includes(q)));
+}
+function renderLibrary() {
+  $$("#libFilters button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === LIB.filter)));
+  const list = libCards();
+  $("#libCount").textContent = `${list.length} card${list.length === 1 ? "" : "s"}`;
+  $("#libGrid").innerHTML = list.length ? list.map(k => `<li><button class="libcard" type="button" data-id="${k.id}" aria-label="${esc(k.name)}"><span class="libface" data-id="${k.id}"></span><span class="libname">${esc(k.name)}</span><span class="libkw">${esc(k.up.split(" · ").slice(0, 2).join(" · "))}</span></button></li>`).join("")
+    : `<li class="empty">No cards match “${esc(LIB.q)}”.</li>`;
+  $$("#libGrid .libface").forEach(el => { if (libObs) libObs.observe(el); else el.innerHTML = ART.face(DECK[+el.dataset.id]); });
+}
+function enterLibrary() { renderLibrary(); }
+$("#libFilters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; LIB.filter = b.dataset.f; renderLibrary(); });
+$("#libSearch").addEventListener("input", e => { LIB.q = e.target.value; if (LIB.q && LIB.filter !== "all") LIB.filter = "all"; renderLibrary(); });
+$("#libGrid").addEventListener("click", e => {
+  const b = e.target.closest(".libcard"); if (!b) return;
+  const list = libCards(); openViewer(list.map(k => ({ id: k.id, both: true })), list.findIndex(k => k.id === +b.dataset.id));
+});
+
+/* ---------- my notes on a reading ---------- */
+const OUTCOMES = [["yes", "Came true"], ["partly", "Partly"], ["no", "Didn't"], ["waiting", "Still waiting"]];
+function updateEntry(id, patch) {
+  const j = journal(), e = j.find(x => x.id === id); if (!e) return false;
+  Object.assign(e, patch); store.set(JKEY, j); if (S.reading && S.reading.id === id) Object.assign(S.reading, patch); return true;
+}
+function renderClarifier(r) {
+  const el = $("#clarifier"); if (!el) return;
+  if (r.clarifier) {
+    const k = DECK[r.clarifier.id], rev = r.clarifier.rev, pos = SPREADS[r.spread].positions[r.clarifier.for];
+    el.innerHTML = `<p class="eyebrow">Clarifier · not a new reading</p><div class="clar"><button class="tcard flipped${rev ? " rev" : ""}" type="button" id="clarCard" aria-label="${esc(k.name)}. Tap to see it big"><span class="inner"><span class="back"></span><span class="face">${ART.face(k)}</span></span></button><div><h3>${esc(k.name)}${rev ? ' <span class="chip">Reversed</span>' : ""}</h3><p class="hint">Adds detail to card ${r.clarifier.for + 1}, ${esc(pos.t)}.</p><p class="kw">${rev ? k.rv : k.up}</p><p>${esc(rev ? k.rvM : k.upM)}</p></div></div>`;
+    return;
+  }
+  const canDraw = S.deck && S.stream && S.reading && S.reading.id === r.id;
+  el.innerHTML = canDraw ? `<p class="eyebrow">Want more detail?</p><p>Pull one extra card from the same shuffled deck to clarify part of this reading. Your spread stays as it is.</p><div class="row left"><label class="sr" for="clarFor">Card to clarify</label><select id="clarFor">${r.cards.map((c, i) => `<option value="${i}"${i === r.cards.length - 1 ? " selected" : ""}>Card ${i + 1}: ${esc(SPREADS[r.spread].positions[i].t)}</option>`).join("")}</select><button class="btn ghost small" type="button" id="clarBtn">Pull a clarifier</button></div>` : "";
+  el.hidden = !canDraw;
+}
+$("#clarifier").addEventListener("click", e => {
+  if (e.target.closest("#clarCard")) { const cl = S.reading.clarifier; openViewer([{ id: cl.id, rev: cl.rev, pos: { t: "Clarifier", d: "for " + SPREADS[S.reading.spread].positions[cl.for].t }, q: S.reading.question }], 0); return; }
+  if (!e.target.closest("#clarBtn") || !S.reading || S.reading.clarifier) return;
+  const used = new Set(S.reading.cards.map(c => c.id)), left = S.deck.filter(c => !used.has(c.id));
+  const pick = left[S.stream.int(left.length)], forI = +$("#clarFor").value;
+  S.reading.clarifier = { id: pick.id, rev: pick.rev, for: forI };
+  updateEntry(S.reading.id, { clarifier: S.reading.clarifier });
+  Sound.flip(); Haptic.buzz(18); renderClarifier(S.reading);
+});
+function renderMyNotes(r) {
+  $("#myNotes").innerHTML = `<h2>Your notes</h2><label class="sr" for="noteText">Notes on this reading</label><textarea id="noteText" rows="3" placeholder="What stood out? What happened next?">${esc(r.note || "")}</textarea>
+<p class="vlabel">Did it come true?</p><div class="outcomes" role="group" aria-label="Did it come true?">${OUTCOMES.map(([k, t]) => `<button type="button" class="chipbtn" data-o="${k}" aria-pressed="${r.outcome === k}">${t}</button>`).join("")}</div><p class="hint" id="noteSaved">Notes save automatically to your journal.</p>`;
+}
+let noteTimer = 0;
+$("#myNotes").addEventListener("input", e => {
+  if (e.target.id !== "noteText" || !S.reading) return;
+  clearTimeout(noteTimer); const id = S.reading.id, v = e.target.value;
+  noteTimer = setTimeout(() => { if (updateEntry(id, { note: v })) $("#noteSaved").textContent = "Saved."; }, 400);
+});
+$("#myNotes").addEventListener("click", e => {
+  const b = e.target.closest(".chipbtn"); if (!b || !S.reading) return;
+  const o = S.reading.outcome === b.dataset.o ? "" : b.dataset.o;
+  updateEntry(S.reading.id, { outcome: o });
+  $$("#myNotes .chipbtn").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.o === o)));
+  Haptic.buzz(10);
+});
+
+/* ---------- journal stats + backup ---------- */
+function renderJStats() {
+  const j = journal();
+  if (!j.length) { $("#jstats").innerHTML = ""; return; }
+  const counts = {}, suits = { wands: 0, cups: 0, swords: 0, pentacles: 0 }; let majors = 0, total = 0;
+  j.forEach(r => r.cards.forEach(c => { counts[c.id] = (counts[c.id] || 0) + 1; total++; const k = DECK[c.id]; if (k.suit) suits[k.suit]++; else majors++; }));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).filter(x => x[1] > 1);
+  const marked = j.filter(r => r.outcome && r.outcome !== "waiting"), hits = marked.filter(r => r.outcome === "yes" || r.outcome === "partly").length;
+  const lead = Object.entries(suits).sort((a, b) => b[1] - a[1])[0];
+  $("#jstats").innerHTML = `<div class="stats">
+<div><b>${fmt(j.length)}</b><span>reading${j.length === 1 ? "" : "s"}</span></div>
+<div><b>${fmt(total)}</b><span>cards drawn</span></div>
+<div><b>${marked.length ? Math.round(hits / marked.length * 100) + "%" : "–"}</b><span>${marked.length ? `came true (of ${marked.length} marked)` : "mark readings to track"}</span></div></div>
+<p>${top.length ? `Your most-drawn ${top.length === 1 ? "card is" : "cards are"} ${top.map(([id, n]) => `<button type="button" class="link" data-card="${id}">${esc(DECK[id].name)}</button> (${n}×)`).join(", ")}.` : "Draw a few more readings to see which cards keep finding you."}
+${total ? ` ${majors / total > .3 ? "The Major Arcana show up often for you: big life lessons are in play." : `${SUITS[lead[0]].name} appear most, pointing to ${SUITS[lead[0]].domain}.`}` : ""}</p>`;
+}
+$("#jstats").addEventListener("click", e => { const b = e.target.closest("[data-card]"); if (b) openViewer([{ id: +b.dataset.card, both: true }], 0); });
+$("#backupBtn").addEventListener("click", () => {
+  const data = JSON.stringify({ app: "TarotParrot", version: 1, exported: new Date().toISOString(), journal: journal(), daily: store.get(DKEY, {}), prefs: store.get("tp.prefs", {}) }, null, 1);
+  try {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+    a.download = `tarotparrot-journal-${dayKey(new Date())}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("Backup downloaded");
+  } catch (e) { toast("Downloads aren't allowed here"); }
+  if (inFrame) $("#backupNote").textContent = "Downloads may be blocked in this preview. They work on the live site.";
+});
+$("#restoreFile").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !["TarotParrot", "TarotParot"].includes(d.app) || !Array.isArray(d.journal)) throw new Error("bad");
+    const have = journal(), ids = new Set(have.map(x => x.id));
+    const merged = have.concat(d.journal.filter(x => x && x.id && Array.isArray(x.cards) && !ids.has(x.id))).sort((a, b) => b.ts.localeCompare(a.ts)).slice(0, 500);
+    store.set(JKEY, merged); updateJCount(); enterJournal();
+    toast(`Restored ${merged.length - have.length} reading${merged.length - have.length === 1 ? "" : "s"}`);
+  } catch (err) { toast("That file isn't a TarotParrot backup"); }
+  e.target.value = "";
+});
+
+/* ---------- shareable reading image ---------- */
+function wrapText(c, text, x, y, maxW, lh, maxLines = 99) {
+  const words = String(text).split(/\s+/); let line = "", lines = [];
+  for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "…"; }
+  lines.forEach((l, i) => c.fillText(l, x, y + i * lh)); return y + lines.length * lh;
+}
+async function shareImage(r, withQ) {
+  const W = 1080, H = 1920, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d");
+  try { await Promise.all(["48px 'IM Fell English'", "italic 48px 'IM Fell English'", "48px 'IM Fell English SC'", "36px 'EB Garamond'"].map(f => document.fonts.load(f))); } catch (e) { /* fallback fonts */ }
+  c.fillStyle = "#4a2330"; c.fillRect(0, 0, W, H);
+  const cols = ["#7f2638", "#c2602e", "#d9a843", "#7a8a38", "#6f93ae", "#3d4c84", "#75497e", "#e08c70", "#66947f"];
+  let sd = (parseInt((r.report && r.report.seed || "1f2e").slice(0, 6), 16) || 7) % 2147483647 || 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  c.filter = "blur(70px)";
+  for (let i = 0; i < 30; i++) { c.globalAlpha = .5 + rnd() * .4; c.fillStyle = cols[i % cols.length]; c.beginPath(); c.ellipse(rnd() * W, rnd() * H, 180 + rnd() * 260, 160 + rnd() * 240, rnd() * 3, 0, 7); c.fill(); }
+  c.filter = "none"; c.globalAlpha = 1;
+  const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(25,8,14,.25)"); g.addColorStop(.5, "rgba(25,8,14,.45)"); g.addColorStop(1, "rgba(25,8,14,.7)"); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.textAlign = "center"; c.shadowColor = "rgba(20,6,10,.7)"; c.shadowBlur = 18;
+  c.fillStyle = "#f6e0a0"; c.font = "92px 'IM Fell English', Georgia, serif"; c.fillText("TarotParrot", W / 2, 170);
+  c.fillStyle = "#f3e8cf"; c.font = "italic 44px 'IM Fell English', Georgia, serif"; c.fillText("A little birdie told me.", W / 2, 236);
+  c.font = "italic 52px 'IM Fell English', Georgia, serif"; c.fillStyle = "#fbf3e2";
+  let y = wrapText(c, withQ && r.question ? `“${r.question}”` : SPREADS[r.spread].name, W / 2, 360, 900, 64, 3);
+  // cards
+  const n = Math.min(r.cards.length, 5), gap = 26, cw = n === 1 ? 420 : Math.min(300, (W - 120 - gap * (n - 1)) / n), ch = cw * 520 / 300, top = y + 40;
+  const imgs = await Promise.all(r.cards.slice(0, n).map(cd => rasterize(ART.face(DECK[cd.id]), 300 * 2, 520 * 2).then(u => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = u; }))));
+  const x0 = (W - (n * cw + (n - 1) * gap)) / 2;
+  imgs.forEach((im, i) => {
+    const x = x0 + i * (cw + gap); c.save(); c.shadowBlur = 30; c.shadowOffsetY = 12;
+    if (r.cards[i].rev) { c.translate(x + cw / 2, top + ch / 2); c.rotate(Math.PI); c.translate(-(x + cw / 2), -(top + ch / 2)); }
+    if (im) c.drawImage(im, x, top, cw, ch); else { c.fillStyle = "#efe2c2"; c.fillRect(x, top, cw, ch); }
+    c.restore();
+    c.fillStyle = "#f6e0a0"; c.font = `${n > 3 ? 26 : 32}px 'IM Fell English SC', Georgia, serif`;
+    wrapText(c, SPREADS[r.spread].positions[i].t, x + cw / 2, top + ch + 46, cw + 10, 32, 2);
+  });
+  if (r.cards.length > n) { c.fillStyle = "#f3e8cf"; c.font = "italic 34px 'EB Garamond', Georgia, serif"; c.fillText(`+ ${r.cards.length - n} more cards`, W / 2, top + ch + 120); }
+  y = top + ch + (r.cards.length > n ? 190 : 150);
+  const a = answerReading(r, SPREADS[r.spread].positions);
+  const verdict = withQ || !r.question ? a.verdict : a.verdict.replace(/^(His|Her|Their|Your [a-z]+'s) feelings:/, "The feelings:");
+  c.fillStyle = "#f6e0a0"; c.font = "64px 'IM Fell English', Georgia, serif"; y = wrapText(c, verdict, W / 2, y + 30, 920, 74, 3);
+  c.fillStyle = "#f3e8cf"; c.font = "38px 'EB Garamond', Georgia, serif";
+  for (const line of a.lines) { const room = Math.floor((H - 190 - (y + 40)) / 52); if (room < 2) break; y = wrapText(c, line, W / 2, y + 40, 900, 52, room); }
+  c.fillStyle = "#f6e0a0"; c.font = "italic 44px 'IM Fell English', Georgia, serif"; if (H - 200 - y > 90) c.fillText(parrotLine(r).replace(/^A little birdie told me: /, "The birdie says: "), W / 2, Math.min(y + 110, H - 190));
+  c.fillStyle = "#f6e0a0"; c.font = "34px 'IM Fell English SC', Georgia, serif"; c.fillText("amarisct.github.io/TarotParrot", W / 2, H - 90);
+  return new Promise(res => cv.toBlob(res, "image/png"));
+}
+let shareBlob = null, shareURL = "";
+async function openShare() {
+  if (!S.reading) return;
+  $("#shareImg").removeAttribute("src"); $("#shareStatus").textContent = "Painting your reading…";
+  $("#shareView").hidden = false; document.body.classList.add("modal-open");
+  shareBlob = await shareImage(S.reading, $("#shareQ").checked);
+  if (shareURL) URL.revokeObjectURL(shareURL);
+  shareURL = URL.createObjectURL(shareBlob); $("#shareImg").src = shareURL;
+  const file = new File([shareBlob], "tarotparrot-reading.png", { type: "image/png" });
+  const canShare = navigator.canShare && navigator.canShare({ files: [file] });
+  $("#shareNative").hidden = !canShare;
+  $("#shareStatus").textContent = canShare ? "Share it straight to Instagram Stories, or save it." : "Press and hold the image to save it, or download it.";
+  Sound.chime(true);
+}
+function closeShare() { $("#shareView").hidden = true; document.body.classList.remove("modal-open"); }
+$("#shareBtn").addEventListener("click", () => { $("#shareQ").checked = false; $("#shareQRow").hidden = !S.reading.question; openShare(); });
+$("#shareQ").addEventListener("change", openShare);
+$("#shareClose").addEventListener("click", closeShare);
+$("#shareView").addEventListener("click", e => { if (e.target.id === "shareView") closeShare(); });
+$("#shareNative").addEventListener("click", async () => {
+  try { await navigator.share({ files: [new File([shareBlob], "tarotparrot-reading.png", { type: "image/png" })], title: "My TarotParrot reading" }); }
+  catch (e) { if (e && e.name !== "AbortError") toast("Sharing isn't available here"); }
+});
+$("#shareDownload").addEventListener("click", () => {
+  try { const a = document.createElement("a"); a.href = shareURL; a.download = "tarotparrot-reading.png"; document.body.appendChild(a); a.click(); a.remove(); }
+  catch (e) { toast("Downloads aren't allowed here"); }
+});
+
+/* ---------- battery saver switch ---------- */
+$("#still").checked = Still.on;
+function applyStill() { document.body.classList.toggle("still", Still.on); if (Still.on) Sky.redraw(); else Sky.resume(); }
+$("#still").addEventListener("change", e => { Still.on = e.target.checked; store.set("tp.still", Still.on); applyStill(); toast(Still.on ? "Background paused to save battery" : "Background moving again"); });
+applyStill();
 
 $("#soundBtn").addEventListener("click", () => {
   Sound.set(!Sound.on); syncSoundBtn();

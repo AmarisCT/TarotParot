@@ -1,4 +1,4 @@
-/* ===== The deck: 78 cards, meanings written for TarotParot ===== */
+/* ===== The deck: 78 cards, meanings written for TarotParrot ===== */
 const SUITS = {
   wands:     { name: "Wands",     element: "Fire",  domain: "drive, creativity and ambition" },
   cups:      { name: "Cups",      element: "Water", domain: "feelings and relationships" },

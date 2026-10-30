@@ -1,6 +1,6 @@
 {
-  "name": "TarotParot",
-  "short_name": "TarotParot",
+  "name": "TarotParrot",
+  "short_name": "TarotParrot",
   "description": "Tarot readings shuffled by your touch, your phone's motion and the moment you ask. A little birdie told me.",
   "start_url": "./",
   "scope": "./",

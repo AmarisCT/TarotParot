@@ -1,4 +1,4 @@
-/* ===== TarotParot app ===== */
+/* ===== TarotParrot app ===== */
 (() => {
 "use strict";
 const $ = (s, r = document) => r.querySelector(s);
@@ -17,11 +17,11 @@ const DEV = IS_TOUCH ? "phone" : "computer";
 const COPY = IS_TOUCH ? {
   lede: "Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.",
   instr: "Swirl your finger over the cards. Shake your phone too, if you like. Stop when it feels right.",
-  l1: "Touch", l2: "Motion", install: "Add TarotParot to your home screen"
+  l1: "Touch", l2: "Motion", install: "Add TarotParrot to your home screen"
 } : {
   lede: "Every deck here is shuffled by you: the way you move your mouse, the rhythm of your typing, the moon and the minute you ask. No two shuffles are ever the same.",
   instr: "Swirl your mouse over the cards. Scroll over them or tap a few keys too, if you like. Stop when it feels right.",
-  l1: "Mouse", l2: "Scroll", install: "Install TarotParot as an app"
+  l1: "Mouse", l2: "Scroll", install: "Install TarotParrot as an app"
 };
 
 /* ---------- the sky right now ---------- */
@@ -79,6 +79,42 @@ const SPREADS = {
     { t: "The Outcome", d: "where this is likely to lead" }
   ] }
 };
+Object.assign(SPREADS, {
+  yesno: { name: "Yes or No", positions: [{ t: "Your answer", d: "a clear yes, no or not yet" }] },
+  love: { name: "Love Spread", positions: [
+    { t: "You", d: "what you bring to this" }, { t: "Them", d: "what they bring, or the love you're seeking" },
+    { t: "The Connection", d: "what flows between you" }, { t: "What's in the Way", d: "the block or the lesson" }, { t: "Where It's Going", d: "where this is heading" }] },
+  career: { name: "Career Spread", positions: [
+    { t: "Where You Stand", d: "your work life right now" }, { t: "Your Strength", d: "what you have going for you" },
+    { t: "The Obstacle", d: "what's holding you back" }, { t: "Your Next Step", d: "what to do next" }] },
+  decision: { name: "Decision Spread", positions: [
+    { t: "Option A", d: "the first path" }, { t: "Option B", d: "the second path" }, { t: "The Tradeoff", d: "what you gain or give up either way" }, { t: "What to Weigh", d: "the deciding factor" }] },
+  growth: { name: "Personal Growth", positions: [
+    { t: "The Pattern", d: "what keeps repeating" }, { t: "The Obstacle", d: "what holds it in place" }, { t: "The Action", d: "the step that breaks it" }] },
+  newmoon: { name: "New Moon Spread", moon: "new", positions: [
+    { t: "What to Plant", d: "the intention for this cycle" }, { t: "What to Release", d: "what to clear away first" },
+    { t: "What Will Help", d: "your support and resources" }, { t: "What Will Grow", d: "what this cycle can bring" }] },
+  fullmoon: { name: "Full Moon Spread", moon: "full", positions: [
+    { t: "What's Coming to Light", d: "what the full moon reveals" }, { t: "What's Complete", d: "what has finished" },
+    { t: "What to Release", d: "what to let go of" }, { t: "What to Celebrate", d: "what you've achieved" }, { t: "Where to Go Next", d: "the next step forward" }] }
+});
+const SPREAD_INFO = {
+  single: "One card for right now", yesno: "A quick, clear answer", three: "Three cards", love: "Five cards for the heart",
+  career: "Four cards for your work", decision: "Choosing between two paths", growth: "Pattern, obstacle, action", celtic: "Ten cards, the full story", newmoon: "Shown at the new moon", fullmoon: "Shown at the full moon"
+};
+const LAYOUT = k => ({ single: "single", yesno: "single", three: "three", celtic: "celtic" })[k] || "grid";
+function moonSpreadNow() { const i = moonInfo(new Date()).idx; return [0, 1, 7].includes(i) ? "newmoon" : [3, 4, 5].includes(i) ? "fullmoon" : null; }
+function renderSpreadOpts(selected) {
+  const keys = ["single", "yesno", "three", "love", "career", "decision", "growth", "celtic"];
+  const m = moonSpreadNow(); if (m) keys.splice(1, 0, m);
+  if (!keys.includes(selected)) selected = "three";
+  $("#spreadOpts").innerHTML = '<legend>Choose a spread</legend>' + keys.map(k => {
+    const n = SPREADS[k].positions.length;
+    return `<label class="spread-opt${SPREADS[k].moon ? " moon" : ""}"><input type="radio" name="spread" value="${k}"${k === selected ? " checked" : ""}><span><i class="minis${n > 5 ? " many" : ""}">${"<i></i>".repeat(n)}</i><b>${SPREADS[k].name}</b><small>${SPREAD_INFO[k]}</small></span></label>`;
+  }).join("");
+}
+renderSpreadOpts((store.get("tp.prefs", {}) || {}).spread || "three");
+
 // Celtic Cross layout: centers as fractions of the spread's width (the box is 1 wide × 1.24 tall)
 const CELTIC = [[.36,.62],[.36,.62],[.36,.93],[.17,.62],[.36,.31],[.55,.62],[.88,1.093],[.88,.778],[.88,.464],[.88,.149]];
 
@@ -233,7 +269,7 @@ function go(name) {
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "v-" + name));
   window.scrollTo(0, 0);
   if (prev === "shuffle" && name !== "shuffle") stopMotion();
-  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal })[name]?.();
+  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal, library: enterLibrary })[name]?.();
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -241,10 +277,11 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-go]"
 const prefs = store.get("tp.prefs", {});
 let savedBday = prefs.bday || "";
 if (prefs.reversals === false) $("#rev").checked = false;
-if (prefs.spread && SPREADS[prefs.spread]) { const r = $(`input[name="spread"][value="${prefs.spread}"]`); if (r) r.checked = true; }
+
 function prettyDate(iso) { const [y, m, d] = iso.split("-").map(Number); return new Date(y, m - 1, d).toLocaleDateString([], { month: "long", day: "numeric", year: "numeric" }); }
 function savePrefs() { store.set("tp.prefs", { bday: savedBday, reversals: $("#rev").checked, spread: ($('input[name="spread"]:checked') || {}).value || "three" }); }
 function showBirthday() {
+  if (typeof showYearCard === "function") try { showYearCard(); } catch (e) { /* not ready yet */ }
   const c = birthCard(savedBday);
   $("#bdayValue").textContent = savedBday ? prettyDate(savedBday) : "Not added yet";
   $("#birthCard").textContent = c ? `Your birth card is ${c.name}.` : "Add it to find your birth card and weave it into every shuffle.";
@@ -269,6 +306,8 @@ $("#bday").addEventListener("keydown", e => { if (e.key === "Enter") { e.prevent
 showBirthday();
 
 function enterHome() {
+  renderDaily(); showYearCard();
+  renderSpreadOpts(($('input[name="spread"]:checked') || {}).value || (store.get("tp.prefs", {}) || {}).spread || "three");
   Ent.reset(); S.deck = null; S.picks = []; S.reading = null; S.saved = false;
   $("#skyLine").textContent = skyLine();
 }
@@ -488,7 +527,7 @@ $("#piles").addEventListener("click", e => {
 const need = () => SPREADS[S.spread].positions.length;
 function enterPick() {
   const n = need(); S.picks = [];
-  $("#pickInstr").textContent = n === 1 ? "Pick one card. Go with the first one your eye lands on." : `Pick ${n === 3 ? "three" : "ten"} cards. Go with the ones your eye lands on.`;
+  $("#pickInstr").textContent = n === 1 ? "Pick one card. Go with the first one your eye lands on." : `Pick ${["", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"][n]} cards. Go with the ones your eye lands on.`;
   $("#pickSlots").innerHTML = Array.from({ length: n }, (_, i) => `<i>${i + 1}</i>`).join("");
   $("#fan").innerHTML = S.deck.map((c, i) => {
     const t = i / 77, y = Math.sin(t * Math.PI * 4) * 9 - Math.sin(t * Math.PI) * 14, a = Math.cos(t * Math.PI * 4) * 4 + (t - .5) * 10;
@@ -550,7 +589,7 @@ function renderReading(r, revealed) {
   $("#readMeta").textContent = `${sp.name}${A.topic ? " · " + A.topic.tag : ""} · ${dateOf(when)}`;
   $("#qEcho").textContent = r.question ? `“${r.question}”` : "An open reading";
   const el = $("#spread");
-  el.className = "spread " + r.spread;
+  el.className = "spread " + LAYOUT(r.spread);
   el.innerHTML = r.cards.map((c, i) => slotHTML(r, c, i, revealed)).join("");
   $("#notes").innerHTML = r.cards.map((c, i) => noteHTML(r, c, i, revealed)).join("");
   $("#revealAll").parentElement.hidden = revealed;
@@ -558,7 +597,7 @@ function renderReading(r, revealed) {
   if (revealed) renderAfter(r);
 }
 function flip(i) {
-  const r = S.reading, b = $(`.tcard[data-i="${i}"]`);
+  const r = S.reading, b = $(`#spread .tcard[data-i="${i}"]`);
   if (!r || !b || b.dataset.turned) return;
   b.dataset.turned = "1";
   const c = r.cards[i], card = DECK[c.id], pos = SPREADS[r.spread].positions[i];
@@ -567,12 +606,12 @@ function flip(i) {
   requestAnimationFrame(() => b.classList.add("flipped"));
   b.setAttribute("aria-label", `${pos.t}: ${card.name}${c.rev ? ", reversed" : ""}`);
   $("#note-" + i).outerHTML = noteHTML(r, c, i, true);
-  if ($$(".tcard").every(t => t.dataset.turned)) setTimeout(finish, reduceMotion ? 0 : 700);
+  if ($$("#spread .tcard").every(t => t.dataset.turned)) setTimeout(finish, reduceMotion ? 0 : 700);
 }
 $("#spread").addEventListener("click", e => {
   const b = e.target.closest(".tcard"); if (!b) return;
   const i = +b.dataset.i;
-  if (b.dataset.turned || b.classList.contains("flipped")) { const n = $("#note-" + i); if (n) n.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" }); return; }
+  if (b.dataset.turned || b.classList.contains("flipped")) { openViewer(S.reading.cards.map((c, k) => ({ id: c.id, rev: c.rev, pos: SPREADS[S.reading.spread].positions[k], q: S.reading.question })), i); return; }
   flip(i);
 });
 $("#revealAll").addEventListener("click", () => {
@@ -630,7 +669,7 @@ function synth(r) {
 }
 function parrotLine(r) {
   const A = analyzeQuestion(r.question);
-  if (A.type === "yesno") return `A little birdie told me: ${yesNo(r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }))).short}.`;
+  if (A.type === "yesno" || r.spread === "yesno") return `A little birdie told me: ${yesNo(r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }))).short}.`;
   const c = DECK[r.cards[r.cards.length - 1].id], rev = r.cards[r.cards.length - 1].rev;
   return `A little birdie told me: ${kw2(rev ? c.rv : c.up)}.`;
 }
@@ -655,21 +694,22 @@ function entropyHTML(rep) {
   return `<summary>What shaped your shuffle</summary><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl><p class="fp">Shuffle fingerprint <code>${fp}</code></p><p class="hint">All of this stayed on your ${kind}. Nothing was sent anywhere, and the same mix can never happen twice.</p>`;
 }
 function answerHTML(r) {
-  const a = answerReading(r);
+  const a = answerReading(r, SPREADS[r.spread].positions);
   return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map(l => `<p>${esc(l)}</p>`).join("")}`;
 }
 function renderAfter(r) {
   $("#answer").innerHTML = answerHTML(r);
+  renderMyNotes(r); renderClarifier(r);
   $("#summary").innerHTML = `<h2>The bigger picture</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
   $("#entropy").innerHTML = entropyHTML(r.report);
   $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
 }
 function readingText(r) {
   const sp = SPREADS[r.spread];
-  const lines = [`TarotParot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
+  const lines = [`TarotParrot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
   const A = analyzeQuestion(r.question);
   r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
-  const a = answerReading(r);
+  const a = answerReading(r, SPREADS[r.spread].positions);
   lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines, "", ...synth(r), "", parrotLine(r));
   if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
   return lines.join("\n");
@@ -693,8 +733,9 @@ function saveReading(r) {
 function updateJCount() { const n = journal().length; $("#jcount").textContent = n ? String(n) : ""; }
 function enterJournal() {
   const j = journal();
+  renderJStats();
   if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
-  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span></button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
+  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span>${r.outcome ? `<span class="jout o-${esc(r.outcome)}">${esc((OUTCOMES.find(o => o[0] === r.outcome) || ["", ""])[1])}</span>` : ""}${r.note ? `<span class="jnote">${esc(r.note.slice(0, 120))}${r.note.length > 120 ? "…" : ""}</span>` : ""}</button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
 }
 $("#jlist").addEventListener("click", e => {
   const del = e.target.closest(".jdel");
@@ -723,7 +764,10 @@ function rasterize(svg, w, h) {
 }
 rasterize(ART.back(), 360, 624).then(u => { if (u) document.documentElement.style.setProperty("--back", `url("${u}")`); });
 $("#mark").innerHTML = ART.mark();
+$("#heroArt").innerHTML = ART.hero();
 
+const Sky = { redraw() {}, resume() {} };
+const Still = { on: store.get("tp.still", false) === true };
 function startSky() {
   const cv = $("#sky");
   const gl = cv.getContext("webgl", { antialias: false, alpha: false, depth: false, powerPreference: "low-power" });
@@ -734,7 +778,7 @@ vec2 h2(vec2 p){p=vec2(dot(p,vec2(127.1,311.7)),dot(p,vec2(269.5,183.3)));return
 float n(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);return mix(mix(dot(h2(i),f),dot(h2(i+vec2(1.,0.)),f-vec2(1.,0.)),u.x),mix(dot(h2(i+vec2(0.,1.)),f-vec2(0.,1.)),dot(h2(i+vec2(1.,1.)),f-vec2(1.,1.)),u.x),u.y);}
 float fbm(vec2 p){float v=0.,a=.5;mat2 m=mat2(1.6,1.2,-1.2,1.6);for(int i=0;i<4;i++){v+=a*n(p);p=m*p;a*=.5;}return v;}
 void main(){
- vec2 uv=gl_FragCoord.xy/r.y;float T=t*.05;
+ vec2 uv=gl_FragCoord.xy/r.y;float T=t*.018;
  vec2 q=vec2(fbm(uv*1.1+vec2(0.,T)),fbm(uv*1.1+vec2(5.2,1.3)-vec2(T*.8,0.)));
  vec2 p=uv*1.45+2.4*q+vec2(T*.3,-T*.2);
  vec3 C[9];
@@ -770,9 +814,17 @@ void main(){
     gl.uniform2f(uR, w, h); gl.uniform1f(uT, offset + (now - t0) / 1000);
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   }
-  function frame(now) { if (!document.hidden && now - last > 33) { last = now; draw(now); } requestAnimationFrame(frame); }
-  if (reduceMotion) { draw(performance.now()); addEventListener("resize", () => draw(performance.now())); }
-  else requestAnimationFrame(frame);
+  let running = false;
+  function frame(now) {
+    if (Still.on || reduceMotion) { running = false; return; }
+    if (!document.hidden && now - last > 33) { last = now; draw(now); }
+    requestAnimationFrame(frame);
+  }
+  Sky.redraw = () => draw(performance.now());
+  Sky.resume = () => { if (!running && !Still.on && !reduceMotion) { running = true; requestAnimationFrame(frame); } };
+  draw(performance.now());
+  addEventListener("resize", () => { if (Still.on || reduceMotion) draw(performance.now()); });
+  Sky.resume();
 }
 startSky();
 
@@ -788,6 +840,281 @@ $("#installBtn").addEventListener("click", async () => {
 const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
 if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone && !inFrame) $("#iosHint").hidden = false;
 if (!inFrame) { try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) { /* not allowed here */ } }
+
+/* ---------- big card viewer ---------- */
+let VIEW = { list: [], i: 0, lastFocus: null };
+function viewerBody(item) {
+  const k = DECK[item.id], rev = !!item.rev, both = item.both;
+  const A = item.q != null ? analyzeQuestion(item.q) : {}, lens = A.topic ? lensFor(A.topic, k, rev) : "";
+  const meta = k.arcana === "major" ? `Major Arcana · ${ART.ROMAN[k.num]}` : `${SUITS[k.suit].name} · ${SUITS[k.suit].element}`;
+  let h = `<p class="eyebrow">${item.pos ? esc(item.pos.t) + " · " + esc(item.pos.d) : meta}</p><h2>${esc(k.name)}${rev ? ' <span class="chip">Reversed</span>' : ""}</h2>`;
+  if (both) {
+    h += `<p class="vlabel">Upright</p><p class="kw">${k.up}</p><p>${k.upM}</p><p class="vlabel">Reversed</p><p class="kw">${k.rv}</p><p>${k.rvM}</p>`;
+    if (k.suit) h += `<p class="hint">${SUITS[k.suit].name} are the suit of ${SUITS[k.suit].element.toLowerCase()}: ${SUITS[k.suit].domain}.${k.rank <= 10 ? ` As a ${RANKS[k.rank - 1].toLowerCase()}, it carries the energy of ${RANK_THEME[k.rank]}.` : ""}</p>`;
+    else h += `<p class="hint">The Major Arcana mark big life lessons and turning points, more than day-to-day events.</p>`;
+  } else {
+    h += `<p class="kw">${rev ? k.rv : k.up}</p><p>${rev ? k.rvM : k.upM}</p>${lens ? `<p class="lens"><b>For ${A.topic.label}:</b> ${lens}</p>` : ""}`;
+  }
+  return h;
+}
+function showViewer() {
+  const item = VIEW.list[VIEW.i], v = $("#viewer");
+  $("#vCard").className = "vcard" + (item.rev ? " rev" : "");
+  $("#vCard").innerHTML = ART.face(DECK[item.id]);
+  $("#vText").innerHTML = viewerBody(item);
+  $("#vPrev").hidden = $("#vNext").hidden = VIEW.list.length < 2;
+  $("#vCount").textContent = VIEW.list.length > 1 ? `${VIEW.i + 1} of ${VIEW.list.length}` : "";
+  v.querySelector(".vscroll").scrollTop = 0;
+}
+function openViewer(list, i) {
+  VIEW = { list, i, lastFocus: document.activeElement };
+  showViewer(); $("#viewer").hidden = false; document.body.classList.add("modal-open");
+  $("#vClose").focus();
+}
+function closeViewer() { $("#viewer").hidden = true; document.body.classList.remove("modal-open"); if (VIEW.lastFocus && VIEW.lastFocus.focus) VIEW.lastFocus.focus(); }
+function stepViewer(d) { if (VIEW.list.length < 2) return; VIEW.i = (VIEW.i + d + VIEW.list.length) % VIEW.list.length; Sound.flick(); showViewer(); }
+$("#vClose").addEventListener("click", closeViewer);
+$("#vPrev").addEventListener("click", () => stepViewer(-1));
+$("#vNext").addEventListener("click", () => stepViewer(1));
+$("#viewer").addEventListener("click", e => { if (e.target.id === "viewer") closeViewer(); });
+document.addEventListener("keydown", e => {
+  if (!$("#viewer").hidden) { if (e.key === "Escape") closeViewer(); if (e.key === "ArrowRight") stepViewer(1); if (e.key === "ArrowLeft") stepViewer(-1); }
+  else if (!$("#shareView").hidden && e.key === "Escape") closeShare();
+});
+let swipeX = null;
+$("#viewer").addEventListener("touchstart", e => { swipeX = e.touches[0].clientX; }, { passive: true });
+$("#viewer").addEventListener("touchend", e => { if (swipeX == null) return; const dx = e.changedTouches[0].clientX - swipeX; if (Math.abs(dx) > 60) stepViewer(dx < 0 ? 1 : -1); swipeX = null; });
+
+/* ---------- card of the day ---------- */
+const DKEY = "tp.daily.v1";
+const dayKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function renderDaily() {
+  const now = new Date(), today = dayKey(now), y = new Date(now); y.setDate(y.getDate() - 1);
+  const st = store.get(DKEY, {}), drawn = st.date === today, m = moonInfo(now);
+  const alive = st.date === today || st.date === dayKey(y), streak = alive ? (st.streak || 0) : 0;
+  const k = drawn ? DECK[st.id] : null;
+  $("#daily").innerHTML = `<div class="daily-card"><button class="tcard dcard${drawn ? " flipped" : ""}${drawn && st.rev ? " rev" : ""}" type="button" id="dailyCard" aria-label="${drawn ? esc(k.name + (st.rev ? ", reversed" : "") + ". Tap to see it big") : "Draw today's card"}"><span class="inner"><span class="back"></span><span class="face">${drawn ? ART.face(k) : ""}</span></span></button></div>
+<div class="daily-text"><p class="eyebrow">Card of the day · ${esc(now.toLocaleDateString([], { month: "long", day: "numeric" }))}</p>
+${drawn ? `<h3>${esc(k.name)}${st.rev ? ' <span class="chip">Reversed</span>' : ""}</h3><p class="kw">${st.rev ? k.rv : k.up}</p><p>${esc(st.rev ? k.rvM : k.upM)}</p>`
+  : `<h3>Today's card is waiting</h3><p>Tap the card to draw it. You get one each day, and it stays the same until tomorrow.</p>`}
+<p class="daily-meta"><span>${moonName(m.name)}</span>${streak ? `<span class="streak">${streak}-day streak</span>` : ""}</p></div>`;
+}
+async function drawDaily() {
+  const now = new Date(), today = dayKey(now), y = new Date(now); y.setDate(y.getDate() - 1);
+  const st = store.get(DKEY, {});
+  if (st.date === today) { openViewer([{ id: st.id, rev: st.rev, pos: { t: "Card of the day", d: now.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" }) } }], 0); return; }
+  const r = new Uint32Array(2); crypto.getRandomValues(r);
+  const seed = await sha256(cat(enc.encode(JSON.stringify({ today, bday: savedBday, t: performance.now(), m: moonInfo(now).frac })), new Uint8Array(r.buffer)));
+  const id = ((seed[0] << 8) | seed[1]) % 78, rev = $("#rev").checked && seed[2] % 10 < 4;
+  const streak = st.date === dayKey(y) ? (st.streak || 0) + 1 : 1;
+  store.set(DKEY, { date: today, id, rev, streak });
+  const b = $("#dailyCard"); b.querySelector(".face").innerHTML = ART.face(DECK[id]); if (rev) b.classList.add("rev");
+  Sound.flip(); Haptic.buzz(18);
+  requestAnimationFrame(() => b.classList.add("flipped"));
+  setTimeout(() => { renderDaily(); if (streak > 1) { Sound.chime(true); toast(`${streak} days in a row`); } }, reduceMotion ? 0 : 900);
+}
+$("#daily").addEventListener("click", e => { if (e.target.closest("#dailyCard")) drawDaily(); });
+
+/* ---------- personal year card ---------- */
+function yearCard(iso, year) {
+  if (!iso) return null;
+  const [, m, d] = iso.split("-").map(Number);
+  let n = year + m + d; while (n > 21) n = String(n).split("").reduce((a, b) => a + Number(b), 0);
+  return DECK[n];
+}
+function showYearCard() {
+  const yr = new Date().getFullYear(), c = yearCard(savedBday, yr);
+  $("#yearCard").textContent = c ? `Your year card for ${yr} is ${c.name}: ${kw2(c.up)}.` : "";
+}
+
+/* ---------- card library ---------- */
+let LIB = { filter: "major", q: "" };
+const libObs = "IntersectionObserver" in window ? new IntersectionObserver(es => es.forEach(en => {
+  if (en.isIntersecting) { const el = en.target; el.innerHTML = ART.face(DECK[+el.dataset.id]); libObs.unobserve(el); }
+}), { rootMargin: "300px" }) : null;
+function libCards() {
+  const q = LIB.q.trim().toLowerCase();
+  return DECK.filter(k => (LIB.filter === "all" || (LIB.filter === "major" ? k.arcana === "major" : k.suit === LIB.filter))
+    && (!q || (k.name + " " + k.up + " " + k.rv).toLowerCase().includes(q)));
+}
+function renderLibrary() {
+  $$("#libFilters button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.f === LIB.filter)));
+  const list = libCards();
+  $("#libCount").textContent = `${list.length} card${list.length === 1 ? "" : "s"}`;
+  $("#libGrid").innerHTML = list.length ? list.map(k => `<li><button class="libcard" type="button" data-id="${k.id}" aria-label="${esc(k.name)}"><span class="libface" data-id="${k.id}"></span><span class="libname">${esc(k.name)}</span><span class="libkw">${esc(k.up.split(" · ").slice(0, 2).join(" · "))}</span></button></li>`).join("")
+    : `<li class="empty">No cards match “${esc(LIB.q)}”.</li>`;
+  $$("#libGrid .libface").forEach(el => { if (libObs) libObs.observe(el); else el.innerHTML = ART.face(DECK[+el.dataset.id]); });
+}
+function enterLibrary() { renderLibrary(); }
+$("#libFilters").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; LIB.filter = b.dataset.f; renderLibrary(); });
+$("#libSearch").addEventListener("input", e => { LIB.q = e.target.value; if (LIB.q && LIB.filter !== "all") LIB.filter = "all"; renderLibrary(); });
+$("#libGrid").addEventListener("click", e => {
+  const b = e.target.closest(".libcard"); if (!b) return;
+  const list = libCards(); openViewer(list.map(k => ({ id: k.id, both: true })), list.findIndex(k => k.id === +b.dataset.id));
+});
+
+/* ---------- my notes on a reading ---------- */
+const OUTCOMES = [["yes", "Came true"], ["partly", "Partly"], ["no", "Didn't"], ["waiting", "Still waiting"]];
+function updateEntry(id, patch) {
+  const j = journal(), e = j.find(x => x.id === id); if (!e) return false;
+  Object.assign(e, patch); store.set(JKEY, j); if (S.reading && S.reading.id === id) Object.assign(S.reading, patch); return true;
+}
+function renderClarifier(r) {
+  const el = $("#clarifier"); if (!el) return;
+  if (r.clarifier) {
+    const k = DECK[r.clarifier.id], rev = r.clarifier.rev, pos = SPREADS[r.spread].positions[r.clarifier.for];
+    el.innerHTML = `<p class="eyebrow">Clarifier · not a new reading</p><div class="clar"><button class="tcard flipped${rev ? " rev" : ""}" type="button" id="clarCard" aria-label="${esc(k.name)}. Tap to see it big"><span class="inner"><span class="back"></span><span class="face">${ART.face(k)}</span></span></button><div><h3>${esc(k.name)}${rev ? ' <span class="chip">Reversed</span>' : ""}</h3><p class="hint">Adds detail to card ${r.clarifier.for + 1}, ${esc(pos.t)}.</p><p class="kw">${rev ? k.rv : k.up}</p><p>${esc(rev ? k.rvM : k.upM)}</p></div></div>`;
+    return;
+  }
+  const canDraw = S.deck && S.stream && S.reading && S.reading.id === r.id;
+  el.innerHTML = canDraw ? `<p class="eyebrow">Want more detail?</p><p>Pull one extra card from the same shuffled deck to clarify part of this reading. Your spread stays as it is.</p><div class="row left"><label class="sr" for="clarFor">Card to clarify</label><select id="clarFor">${r.cards.map((c, i) => `<option value="${i}"${i === r.cards.length - 1 ? " selected" : ""}>Card ${i + 1}: ${esc(SPREADS[r.spread].positions[i].t)}</option>`).join("")}</select><button class="btn ghost small" type="button" id="clarBtn">Pull a clarifier</button></div>` : "";
+  el.hidden = !canDraw;
+}
+$("#clarifier").addEventListener("click", e => {
+  if (e.target.closest("#clarCard")) { const cl = S.reading.clarifier; openViewer([{ id: cl.id, rev: cl.rev, pos: { t: "Clarifier", d: "for " + SPREADS[S.reading.spread].positions[cl.for].t }, q: S.reading.question }], 0); return; }
+  if (!e.target.closest("#clarBtn") || !S.reading || S.reading.clarifier) return;
+  const used = new Set(S.reading.cards.map(c => c.id)), left = S.deck.filter(c => !used.has(c.id));
+  const pick = left[S.stream.int(left.length)], forI = +$("#clarFor").value;
+  S.reading.clarifier = { id: pick.id, rev: pick.rev, for: forI };
+  updateEntry(S.reading.id, { clarifier: S.reading.clarifier });
+  Sound.flip(); Haptic.buzz(18); renderClarifier(S.reading);
+});
+function renderMyNotes(r) {
+  $("#myNotes").innerHTML = `<h2>Your notes</h2><label class="sr" for="noteText">Notes on this reading</label><textarea id="noteText" rows="3" placeholder="What stood out? What happened next?">${esc(r.note || "")}</textarea>
+<p class="vlabel">Did it come true?</p><div class="outcomes" role="group" aria-label="Did it come true?">${OUTCOMES.map(([k, t]) => `<button type="button" class="chipbtn" data-o="${k}" aria-pressed="${r.outcome === k}">${t}</button>`).join("")}</div><p class="hint" id="noteSaved">Notes save automatically to your journal.</p>`;
+}
+let noteTimer = 0;
+$("#myNotes").addEventListener("input", e => {
+  if (e.target.id !== "noteText" || !S.reading) return;
+  clearTimeout(noteTimer); const id = S.reading.id, v = e.target.value;
+  noteTimer = setTimeout(() => { if (updateEntry(id, { note: v })) $("#noteSaved").textContent = "Saved."; }, 400);
+});
+$("#myNotes").addEventListener("click", e => {
+  const b = e.target.closest(".chipbtn"); if (!b || !S.reading) return;
+  const o = S.reading.outcome === b.dataset.o ? "" : b.dataset.o;
+  updateEntry(S.reading.id, { outcome: o });
+  $$("#myNotes .chipbtn").forEach(x => x.setAttribute("aria-pressed", String(x.dataset.o === o)));
+  Haptic.buzz(10);
+});
+
+/* ---------- journal stats + backup ---------- */
+function renderJStats() {
+  const j = journal();
+  if (!j.length) { $("#jstats").innerHTML = ""; return; }
+  const counts = {}, suits = { wands: 0, cups: 0, swords: 0, pentacles: 0 }; let majors = 0, total = 0;
+  j.forEach(r => r.cards.forEach(c => { counts[c.id] = (counts[c.id] || 0) + 1; total++; const k = DECK[c.id]; if (k.suit) suits[k.suit]++; else majors++; }));
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 3).filter(x => x[1] > 1);
+  const marked = j.filter(r => r.outcome && r.outcome !== "waiting"), hits = marked.filter(r => r.outcome === "yes" || r.outcome === "partly").length;
+  const lead = Object.entries(suits).sort((a, b) => b[1] - a[1])[0];
+  $("#jstats").innerHTML = `<div class="stats">
+<div><b>${fmt(j.length)}</b><span>reading${j.length === 1 ? "" : "s"}</span></div>
+<div><b>${fmt(total)}</b><span>cards drawn</span></div>
+<div><b>${marked.length ? Math.round(hits / marked.length * 100) + "%" : "–"}</b><span>${marked.length ? `came true (of ${marked.length} marked)` : "mark readings to track"}</span></div></div>
+<p>${top.length ? `Your most-drawn ${top.length === 1 ? "card is" : "cards are"} ${top.map(([id, n]) => `<button type="button" class="link" data-card="${id}">${esc(DECK[id].name)}</button> (${n}×)`).join(", ")}.` : "Draw a few more readings to see which cards keep finding you."}
+${total ? ` ${majors / total > .3 ? "The Major Arcana show up often for you: big life lessons are in play." : `${SUITS[lead[0]].name} appear most, pointing to ${SUITS[lead[0]].domain}.`}` : ""}</p>`;
+}
+$("#jstats").addEventListener("click", e => { const b = e.target.closest("[data-card]"); if (b) openViewer([{ id: +b.dataset.card, both: true }], 0); });
+$("#backupBtn").addEventListener("click", () => {
+  const data = JSON.stringify({ app: "TarotParrot", version: 1, exported: new Date().toISOString(), journal: journal(), daily: store.get(DKEY, {}), prefs: store.get("tp.prefs", {}) }, null, 1);
+  try {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data], { type: "application/json" }));
+    a.download = `tarotparrot-journal-${dayKey(new Date())}.json`; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast("Backup downloaded");
+  } catch (e) { toast("Downloads aren't allowed here"); }
+  if (inFrame) $("#backupNote").textContent = "Downloads may be blocked in this preview. They work on the live site.";
+});
+$("#restoreFile").addEventListener("change", async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    if (!d || !["TarotParrot", "TarotParot"].includes(d.app) || !Array.isArray(d.journal)) throw new Error("bad");
+    const have = journal(), ids = new Set(have.map(x => x.id));
+    const merged = have.concat(d.journal.filter(x => x && x.id && Array.isArray(x.cards) && !ids.has(x.id))).sort((a, b) => b.ts.localeCompare(a.ts)).slice(0, 500);
+    store.set(JKEY, merged); updateJCount(); enterJournal();
+    toast(`Restored ${merged.length - have.length} reading${merged.length - have.length === 1 ? "" : "s"}`);
+  } catch (err) { toast("That file isn't a TarotParrot backup"); }
+  e.target.value = "";
+});
+
+/* ---------- shareable reading image ---------- */
+function wrapText(c, text, x, y, maxW, lh, maxLines = 99) {
+  const words = String(text).split(/\s+/); let line = "", lines = [];
+  for (const w of words) { const t = line ? line + " " + w : w; if (c.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t; }
+  if (line) lines.push(line);
+  if (lines.length > maxLines) { lines = lines.slice(0, maxLines); lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "…"; }
+  lines.forEach((l, i) => c.fillText(l, x, y + i * lh)); return y + lines.length * lh;
+}
+async function shareImage(r, withQ) {
+  const W = 1080, H = 1920, cv = document.createElement("canvas"); cv.width = W; cv.height = H; const c = cv.getContext("2d");
+  try { await Promise.all(["48px 'IM Fell English'", "italic 48px 'IM Fell English'", "48px 'IM Fell English SC'", "36px 'EB Garamond'"].map(f => document.fonts.load(f))); } catch (e) { /* fallback fonts */ }
+  c.fillStyle = "#4a2330"; c.fillRect(0, 0, W, H);
+  const cols = ["#7f2638", "#c2602e", "#d9a843", "#7a8a38", "#6f93ae", "#3d4c84", "#75497e", "#e08c70", "#66947f"];
+  let sd = (parseInt((r.report && r.report.seed || "1f2e").slice(0, 6), 16) || 7) % 2147483647 || 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+  c.filter = "blur(70px)";
+  for (let i = 0; i < 30; i++) { c.globalAlpha = .5 + rnd() * .4; c.fillStyle = cols[i % cols.length]; c.beginPath(); c.ellipse(rnd() * W, rnd() * H, 180 + rnd() * 260, 160 + rnd() * 240, rnd() * 3, 0, 7); c.fill(); }
+  c.filter = "none"; c.globalAlpha = 1;
+  const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, "rgba(25,8,14,.25)"); g.addColorStop(.5, "rgba(25,8,14,.45)"); g.addColorStop(1, "rgba(25,8,14,.7)"); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  c.textAlign = "center"; c.shadowColor = "rgba(20,6,10,.7)"; c.shadowBlur = 18;
+  c.fillStyle = "#f6e0a0"; c.font = "92px 'IM Fell English', Georgia, serif"; c.fillText("TarotParrot", W / 2, 170);
+  c.fillStyle = "#f3e8cf"; c.font = "italic 44px 'IM Fell English', Georgia, serif"; c.fillText("A little birdie told me.", W / 2, 236);
+  c.font = "italic 52px 'IM Fell English', Georgia, serif"; c.fillStyle = "#fbf3e2";
+  let y = wrapText(c, withQ && r.question ? `“${r.question}”` : SPREADS[r.spread].name, W / 2, 360, 900, 64, 3);
+  // cards
+  const n = Math.min(r.cards.length, 5), gap = 26, cw = n === 1 ? 420 : Math.min(300, (W - 120 - gap * (n - 1)) / n), ch = cw * 520 / 300, top = y + 40;
+  const imgs = await Promise.all(r.cards.slice(0, n).map(cd => rasterize(ART.face(DECK[cd.id]), 300 * 2, 520 * 2).then(u => new Promise(res => { const im = new Image(); im.onload = () => res(im); im.onerror = () => res(null); im.src = u; }))));
+  const x0 = (W - (n * cw + (n - 1) * gap)) / 2;
+  imgs.forEach((im, i) => {
+    const x = x0 + i * (cw + gap); c.save(); c.shadowBlur = 30; c.shadowOffsetY = 12;
+    if (r.cards[i].rev) { c.translate(x + cw / 2, top + ch / 2); c.rotate(Math.PI); c.translate(-(x + cw / 2), -(top + ch / 2)); }
+    if (im) c.drawImage(im, x, top, cw, ch); else { c.fillStyle = "#efe2c2"; c.fillRect(x, top, cw, ch); }
+    c.restore();
+    c.fillStyle = "#f6e0a0"; c.font = `${n > 3 ? 26 : 32}px 'IM Fell English SC', Georgia, serif`;
+    wrapText(c, SPREADS[r.spread].positions[i].t, x + cw / 2, top + ch + 46, cw + 10, 32, 2);
+  });
+  if (r.cards.length > n) { c.fillStyle = "#f3e8cf"; c.font = "italic 34px 'EB Garamond', Georgia, serif"; c.fillText(`+ ${r.cards.length - n} more cards`, W / 2, top + ch + 120); }
+  y = top + ch + (r.cards.length > n ? 190 : 150);
+  const a = answerReading(r, SPREADS[r.spread].positions);
+  const verdict = withQ || !r.question ? a.verdict : a.verdict.replace(/^(His|Her|Their|Your [a-z]+'s) feelings:/, "The feelings:");
+  c.fillStyle = "#f6e0a0"; c.font = "64px 'IM Fell English', Georgia, serif"; y = wrapText(c, verdict, W / 2, y + 30, 920, 74, 3);
+  c.fillStyle = "#f3e8cf"; c.font = "38px 'EB Garamond', Georgia, serif";
+  for (const line of a.lines) { const room = Math.floor((H - 190 - (y + 40)) / 52); if (room < 2) break; y = wrapText(c, line, W / 2, y + 40, 900, 52, room); }
+  c.fillStyle = "#f6e0a0"; c.font = "italic 44px 'IM Fell English', Georgia, serif"; if (H - 200 - y > 90) c.fillText(parrotLine(r).replace(/^A little birdie told me: /, "The birdie says: "), W / 2, Math.min(y + 110, H - 190));
+  c.fillStyle = "#f6e0a0"; c.font = "34px 'IM Fell English SC', Georgia, serif"; c.fillText("amarisct.github.io/TarotParrot", W / 2, H - 90);
+  return new Promise(res => cv.toBlob(res, "image/png"));
+}
+let shareBlob = null, shareURL = "";
+async function openShare() {
+  if (!S.reading) return;
+  $("#shareImg").removeAttribute("src"); $("#shareStatus").textContent = "Painting your reading…";
+  $("#shareView").hidden = false; document.body.classList.add("modal-open");
+  shareBlob = await shareImage(S.reading, $("#shareQ").checked);
+  if (shareURL) URL.revokeObjectURL(shareURL);
+  shareURL = URL.createObjectURL(shareBlob); $("#shareImg").src = shareURL;
+  const file = new File([shareBlob], "tarotparrot-reading.png", { type: "image/png" });
+  const canShare = navigator.canShare && navigator.canShare({ files: [file] });
+  $("#shareNative").hidden = !canShare;
+  $("#shareStatus").textContent = canShare ? "Share it straight to Instagram Stories, or save it." : "Press and hold the image to save it, or download it.";
+  Sound.chime(true);
+}
+function closeShare() { $("#shareView").hidden = true; document.body.classList.remove("modal-open"); }
+$("#shareBtn").addEventListener("click", () => { $("#shareQ").checked = false; $("#shareQRow").hidden = !S.reading.question; openShare(); });
+$("#shareQ").addEventListener("change", openShare);
+$("#shareClose").addEventListener("click", closeShare);
+$("#shareView").addEventListener("click", e => { if (e.target.id === "shareView") closeShare(); });
+$("#shareNative").addEventListener("click", async () => {
+  try { await navigator.share({ files: [new File([shareBlob], "tarotparrot-reading.png", { type: "image/png" })], title: "My TarotParrot reading" }); }
+  catch (e) { if (e && e.name !== "AbortError") toast("Sharing isn't available here"); }
+});
+$("#shareDownload").addEventListener("click", () => {
+  try { const a = document.createElement("a"); a.href = shareURL; a.download = "tarotparrot-reading.png"; document.body.appendChild(a); a.click(); a.remove(); }
+  catch (e) { toast("Downloads aren't allowed here"); }
+});
+
+/* ---------- battery saver switch ---------- */
+$("#still").checked = Still.on;
+function applyStill() { document.body.classList.toggle("still", Still.on); if (Still.on) Sky.redraw(); else Sky.resume(); }
+$("#still").addEventListener("change", e => { Still.on = e.target.checked; store.set("tp.still", Still.on); applyStill(); toast(Still.on ? "Background paused to save battery" : "Background moving again"); });
+applyStill();
 
 $("#soundBtn").addEventListener("click", () => {
   Sound.set(!Sound.on); syncSoundBtn();

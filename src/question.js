@@ -38,13 +38,21 @@ function analyzeQuestion(q) {
     if (n > bestN) { best = tp; bestN = n; }
   }
   let type = "open";
-  if (/^\s*(when|how (long|soon))\b/.test(t)) type = "when";
+  const WHO = "(he|she|they|him|her|them|my [a-z]+|[a-z]+)";
+  if (new RegExp("\\bhow (does|do|did|will|would|is) " + WHO + " (really |truly |actually )?(feel|see|think of|view)\\b").test(t)
+    || new RegExp("\\bwhat (does|do|did) " + WHO + " (really |truly |actually )?(think|feel)\\b").test(t)
+    || /\bwhat are (his|her|their) (true |real )?(feelings|intentions)\b/.test(t) || /\b(his|her|their) feelings (for|about|towards|toward) me\b/.test(t)) type = "feel";
+  else if (/^\s*(when|how (long|soon))\b/.test(t)) type = "when";
+  else if (/^\s*how (will|is|did|are|was|would) .*\b(go|going|turn out|work out|end|play out|unfold)\b/.test(t) || /^\s*what (will|is going to) (happen|come)/.test(t) || /^\s*what('s| is) (coming|ahead|next)\b/.test(t)) type = "outcome";
+  else if (/^\s*what (should|do|can|could) (i|we) do\b|^\s*what('s| is) my next (step|move)\b|^\s*what (should|do) i need to do\b/.test(t)) type = "how";
   else if (/^\s*(should|will|is|are|am|does|do|did|can|could|would|has|have|was|were|shall|won't|isn't|am i)\b/.test(t) || /\bshould i\b|\bwill (he|she|they|i|it|we)\b/.test(t)) type = "yesno";
-  else if (/^\s*how\b/.test(t)) type = "how";
+  else if (/^\s*how (can|do|should|could|would|might|to|best|much)\b/.test(t) || /^\s*how\b/.test(t)) type = "how";
   else if (/^\s*why\b/.test(t)) type = "why";
   const pm = t.match(/\bmy (best friend|partner|boyfriend|girlfriend|husband|wife|crush|ex|boss|manager|friend|mom|mum|mother|dad|father|sister|brother|son|daughter|child|coworker|colleague|team|client|landlord|teacher)\b/);
   const person = pm ? "your " + pm[1] : (/\b(he|she|him|her|they|them|his)\b/.test(t) ? "the person you're asking about" : null);
-  return (_qa[q] = { topic: best, type, person });
+  const sub = pm ? "your " + pm[1] : /\bshe\b|\bher\b/.test(t) ? "she" : /\bhe\b|\bhim\b|\bhis\b/.test(t) ? "he" : /\bthey\b|\bthem\b|\btheir\b/.test(t) ? "they" : null;
+  if (type === "feel" && !best) best = TOPICS[0];
+  return (_qa[q] = { topic: best, type, person, sub });
 }
 function lensFor(topic, card, rev) {
   if (!topic) return "";
@@ -105,13 +113,20 @@ const mean = c => c.rev ? c.rvM : c.upM;
 const kws = c => { const p = (c.rev ? c.rv : c.up).split(" · "); return p.length > 1 ? p[0] + " and " + p[1] : p[0]; };
 // which card plays which part, per spread
 function roles(spread, cards) {
+  if (spread === "decision") return { now: cards[2], block: cards[2], out: cards[3], adv: cards[3], root: cards[2], a: cards[0], b: cards[1] };
+  if (spread === "growth") return { now: cards[0], block: cards[1], out: cards[2], adv: cards[2], root: cards[0] };
+  if (spread === "love") return { now: cards[2], block: cards[3], out: cards[4], adv: cards[0], root: cards[0] };
+  if (spread === "career") return { now: cards[0], block: cards[2], out: cards[3], adv: cards[3], root: cards[1] };
+  if (spread === "newmoon") return { now: cards[0], block: cards[1], out: cards[3], adv: cards[2], root: cards[1] };
+  if (spread === "fullmoon") return { now: cards[0], block: cards[2], out: cards[4], adv: cards[4], root: cards[1] };
   if (spread === "celtic") return { now: cards[0], block: cards[1], root: cards[2], past: cards[3], out: cards[9], adv: cards[6], fear: cards[8] };
   if (spread === "three") return { past: cards[0], now: cards[1], out: cards[2], adv: cards[1], root: cards[0] };
   return { now: cards[0], out: cards[0], adv: cards[0], root: cards[0] };
 }
-function answerReading(r) {
+function answerReading(r, positions) {
   const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
-  const A = analyzeQuestion(r.question), R = roles(r.spread, cards), single = cards.length === 1;
+  const A0 = analyzeQuestion(r.question), R = roles(r.spread, cards), single = cards.length === 1;
+  const A = Object.assign({}, A0, { type: r.spread === "yesno" ? "yesno" : A0.type });
   const q = r.question ? youify(r.question) : "";
   const isShould = /^\s*should\b/i.test(r.question || "") || /\bshould i\b/i.test(r.question || "");
   const lens = c => A.topic ? lensFor(A.topic, c, c.rev) : "";
@@ -119,11 +134,23 @@ function answerReading(r) {
   // the story the cards tell, in their positions
   const story = single
     ? `${nmEnd(R.now)} came up for this. ${mean(R.now)}`
-    : r.spread === "three"
+    : !["three", "celtic"].includes(r.spread) && positions
+      ? positions.map((p, i) => `${p.t}: ${nmEnd(cards[i])}, ${kws(cards[i])}.`).join(" ")
+      : r.spread === "three"
       ? `Looking back, ${nm(R.past)} shows this grew out of ${kws(R.past)}. Right now, ${nmEnd(R.now)} says ${lc(first(mean(R.now)))} Ahead, ${nm(R.out)} points to ${kws(R.out)}.`
       : `At the heart of it is ${nmEnd(R.now)}: ${lc(first(mean(R.now)))} What stands in your way is ${nmEnd(R.block)}, which means ${kws(R.block)}. Underneath it all sits ${nmEnd(R.root)}, ${kws(R.root)}. Where this is heading is ${nmEnd(R.out)}: ${lc(first(mean(R.out)))}`;
   const advice = single ? (rest(mean(R.adv)) || first(mean(R.adv))) : first(mean(R.adv)) + (rest(mean(R.adv)) ? " " + rest(mean(R.adv)) : "");
-  if (A.type === "yesno") {
+  if (r.spread === "decision") {
+    const score = c => (c.rev ? -1 : 1) + (YES_LEAN[c.id] && !c.rev ? YES_LEAN[c.id] : 0) - (NO_LEAN[c.id] && !c.rev ? NO_LEAN[c.id] : 0);
+    const m = (r.question || "").replace(/[?.!]+$/, "").match(/^(?:should|do|can|could|would|will)\s+i\s+(.+?)\s+or\s+(.+)$/i) || (r.question || "").replace(/[?.!]+$/, "").match(/^(.+?)\s+or\s+(.+)$/i);
+    const nameA = m ? youify(m[1]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option A", nameB = m ? youify(m[2]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option B";
+    const sa = score(R.a), sb = score(R.b);
+    verdict = sa === sb ? "Both paths are close. The deciding factor matters more than the choice." : `${(sa > sb ? nameA : nameB).replace(/^./, x => x.toUpperCase())} looks stronger.`;
+    lines.push(`If you ${nameA === "option A" ? "choose option A" : nameA}: ${nmEnd(R.a)}, ${kws(R.a)}. ${first(mean(R.a))}`);
+    lines.push(`If you ${nameB === "option B" ? "choose option B" : nameB}: ${nmEnd(R.b)}, ${kws(R.b)}. ${first(mean(R.b))}`);
+    lines.push(`Either way, ${nmEnd(cards[2])} shows the tradeoff: ${kws(cards[2])}. What to weigh most: ${lc(first(mean(cards[3])))}`);
+    if (!m) lines.push(`Tip: ask it as "Should I ___ or ___?" and the birdie will name both options.`);
+  } else if (A.type === "yesno") {
     const pool = single ? cards : cards.concat([R.out, R.out]);
     const yn = yesNo(pool);
     verdict = {
@@ -146,6 +173,21 @@ function answerReading(r) {
     verdict = whenVerdict(cards);
     lines.push(story);
     lines.push(`What speeds it up: ${lc(advice)}`);
+  } else if (A.type === "feel") {
+    const them = r.spread === "love" ? cards[1] : r.spread === "celtic" ? cards[7] : r.spread === "three" ? cards[1] : cards[0];
+    const sub = A.sub || "they", poss = sub === "she" ? "Her" : sub === "he" ? "His" : sub === "they" ? "Their" : sub.charAt(0).toUpperCase() + sub.slice(1) + "'s";
+    const FL = LENS[(A.topic || TOPICS[0]).key], feel = them.arcana === "major" ? FL.major : FL[them.suit];
+    verdict = `${poss} feelings: ${kws(them)}.`;
+    lines.push(`The card for ${sub === "they" ? "them" : sub === "she" ? "her" : sub === "he" ? "him" : sub} is ${nmEnd(them)}. ${feel[them.rev ? 1 : 0]}`);
+    lines.push(them.rev
+      ? `Reversed, it suggests the feelings are there but held back, confused or not being shown. That is about ${sub === "they" ? "where they are" : sub === "she" ? "where she is" : sub === "he" ? "where he is" : "where they are"}, not about your worth.`
+      : `Upright, these feelings are fairly open and active right now.`);
+    if (!single) lines.push(`Where it's heading: ${nmEnd(R.out)}, ${kws(R.out)}. ${R.adv !== them ? `Your best move: ${lc(first(mean(R.adv)))}` : ""}`.trim());
+  } else if (A.type === "outcome") {
+    verdict = `It's heading toward ${kws(R.out)}.`;
+    lines.push(story);
+    if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
+    lines.push(`To make the most of it: ${lc(advice)}`);
   } else if (A.type === "how") {
     verdict = `Here's how: ${kws(R.adv)}.`;
     lines.push(`Your guide is ${nmEnd(R.adv)}. ${advice}`);

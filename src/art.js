@@ -1,4 +1,4 @@
-/* ===== Original card art for TarotParot, drawn as SVG ===== */
+/* ===== Original card art for TarotParrot, drawn as SVG ===== */
 const ART = (() => {
   const INK = "#4a2f17";
   const f = n => Math.round(n * 10) / 10;
@@ -161,7 +161,7 @@ const ART = (() => {
     return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${f(Math.min(w, h) / 2)}" fill="#7d5230" stroke="${INK}" stroke-width="1"/>`;
   }
 
-  /* ---------- the parrot (TarotParot's mascot), feet at 0,0, facing left ---------- */
+  /* ---------- the parrot (TarotParrot's mascot), feet at 0,0, facing left ---------- */
   function parrot(c, x, y, s = 1, o = {}) {
     const sil = o.silhouette, G = c.G;
     const fill = col => sil ? G : col;
@@ -373,11 +373,37 @@ const ART = (() => {
       + "</svg>";
   }
 
+
+  /* ---------- home-screen hero: the parrot on a living crystal ball ---------- */
+  function hero() {
+    const u = "hr", c = ctx(u);
+    const sparkle = (x, y, r, d) => `<g class="sparkle" style="animation-delay:${d}s;transform-origin:${x}px ${y}px">${starN(c, x, y, r, r * .28, 4)}</g>`;
+    return `<svg class="hero-svg" viewBox="40 20 440 470" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The TarotParrot parrot perched on a glowing crystal ball beside a gold star"><defs>${gold(u)}
+<radialGradient id="orb${u}" cx=".4" cy=".36" r=".72"><stop offset="0" stop-color="#f7f6f2"/><stop offset=".5" stop-color="#c3cddb"/><stop offset="1" stop-color="#5f708c"/></radialGradient>
+<radialGradient id="halo${u}" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffe7a8" stop-opacity=".55"/><stop offset="1" stop-color="#ffe7a8" stop-opacity="0"/></radialGradient>
+<clipPath id="clip${u}"><circle cx="256" cy="330" r="84"/></clipPath>
+<filter id="soft${u}" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter>
+<linearGradient id="sh${u}" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+</defs>
+<circle class="halo" cx="256" cy="330" r="150" fill="url(#halo${u})"/>
+<g class="star-main" style="transform-origin:350px 150px">${star8(c, 350, 150, 58, 30, 9)}</g>
+${sparkle(410, 238, 11, 0)}${sparkle(118, 186, 9, 1.3)}${sparkle(170, 92, 7, 2.6)}${sparkle(396, 64, 8, 3.4)}
+<path d="M196 430C200 404 214 392 256 392C298 392 312 404 316 430Z" fill="#5a3a22" stroke="${INK}" stroke-width="1.5"/><rect x="186" y="424" width="140" height="16" rx="5" fill="${c.G}" stroke="${INK}" stroke-width="1.5"/>
+<circle cx="256" cy="330" r="86" fill="url(#orb${u})"/>
+<g clip-path="url(#clip${u})"><g class="swirl" style="transform-origin:256px 330px" filter="url(#soft${u})">
+<ellipse cx="226" cy="300" rx="62" ry="30" fill="#e08c70" opacity=".6"/><ellipse cx="292" cy="346" rx="58" ry="28" fill="#6f93ae" opacity=".65"/><ellipse cx="250" cy="372" rx="50" ry="22" fill="#d9a843" opacity=".55"/><ellipse cx="280" cy="292" rx="34" ry="20" fill="#9a6fb0" opacity=".55"/>
+</g><g class="shimmer"><rect x="150" y="240" width="60" height="190" fill="url(#sh${u})" transform="rotate(24 180 335)"/></g>
+<ellipse cx="228" cy="296" rx="30" ry="18" fill="#fff" opacity=".45"/></g>
+<circle cx="256" cy="330" r="86" fill="none" stroke="${c.G}" stroke-width="4"/>
+<g class="bob">${parrot(c, 250, 250, .9)}</g>
+</svg>`;
+  }
+
   /* small logo mark for the header */
   function mark() {
     const u = "mk", c = ctx(u);
     return `<svg viewBox="-70 -205 130 215" width="26" height="42" aria-hidden="true"><defs>${gold(u)}</defs>${parrot(c,0,0,1)}</svg>`;
   }
 
-  return { face, back, icon, mark, ROMAN };
+  return { face, back, icon, mark, hero, ROMAN };
 })();
