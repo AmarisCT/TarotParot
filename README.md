@@ -11,7 +11,7 @@ TarotParot is a tarot reading app that installs to your home screen. Every shuff
 
 All of that is mixed with the device's secure random generator, and none of it leaves the device.
 
-Readings pick up the topic and type of the question (love, work, money, yes-or-no, when, how, why). There are three spreads: Single Pull, Past · Present · Future, and Celtic Cross. All 78 cards are original watercolor-and-gold artwork drawn in SVG. Finished readings are saved to a journal on the device.
+Readings pick up the topic and type of the question (love, work, money, yes-or-no, when, how, why). There are three spreads: Single Pull, Past · Present · Future, and Celtic Cross. All 78 cards are original watercolor-and-gold artwork drawn in SVG. Finished readings are saved to a journal on the device. Sounds (a riffle, card flips, a chime and a parrot chirp) are synthesized live, with phone vibration and one on/off switch in the header.
 
 An [amaris ct](https://amarisct.github.io/Amaris/) project.
 

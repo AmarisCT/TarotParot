@@ -80,6 +80,18 @@ button { font: inherit; color: inherit; }
   padding: 7px 15px; cursor: pointer; color: var(--parch);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
+.navset { display: flex; align-items: center; gap: 8px; }
+.iconbtn {
+  width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; padding: 0;
+  background: var(--glass); border: 1px solid var(--glass-line); color: var(--gold-hi);
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+}
+.iconbtn svg path { fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.iconbtn svg .spk { fill: currentColor; }
+.iconbtn .mute { display: none; }
+.iconbtn.off { color: #cdb894; }
+.iconbtn.off .wave { display: none; }
+.iconbtn.off .mute { display: inline; }
 .navbtn .count { color: var(--gold-hi); font-variant-numeric: tabular-nums; }
 
 .view { display: none; flex-direction: column; gap: 18px; }

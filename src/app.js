@@ -137,6 +137,96 @@ function timingJitter() {
 }
 
 /* ---------- views ---------- */
+/* ---------- sound and buzz: synthesized live, no audio files ---------- */
+const Sound = (() => {
+  let ctx = null, master = null, noiseBuf = null, on = store.get("tp.sound", true) !== false;
+  function ensure() {
+    if (!on) return null;
+    try {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+        master = ctx.createGain(); master.gain.value = .8;
+        master.connect(ctx.destination);
+        const len = Math.floor(ctx.sampleRate * 1.2);
+        noiseBuf = ctx.createBuffer(1, len, ctx.sampleRate);
+        const d = noiseBuf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === "suspended" && ctx.resume) ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  }
+  function env(g, t, peak, attack, dur) {
+    g.gain.setValueAtTime(.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + attack);
+    g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  }
+  function noise(t, dur, f0, f1, q, peak) {
+    const src = ctx.createBufferSource(); src.buffer = noiseBuf;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = q;
+    bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = ctx.createGain(); env(g, t, peak, Math.min(.006, dur / 4), dur);
+    src.connect(bp); bp.connect(g); g.connect(master);
+    src.start(t, Math.random() * (noiseBuf.duration - dur - .05), dur + .03);
+  }
+  function tone(t, f0, dur, peak, type = "sine", f1) {
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = ctx.createGain(); env(g, t, peak, .008, dur);
+    o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .03);
+  }
+  const play = fn => { const c = ensure(); if (c) { try { fn(c.currentTime + .005); } catch (e) { /* ignore */ } } };
+  return {
+    get on() { return on; },
+    set(v) { on = v; store.set("tp.sound", v); if (v) ensure(); },
+    unlock() { if (on) ensure(); },
+    // cards brushing past each other as one slides out of the deck
+    riffle(n = 6) { play(t => { for (let i = 0; i < n; i++) { noise(t, .02 + Math.random() * .014, 2400 + Math.random() * 2200, 1400, 1.3, .58 + Math.random() * .3); t += .013 + Math.random() * .012; } }); },
+    // a card slipping back into the deck
+    flick() { play(t => noise(t, .045, 2600, 1100, 1.1, .42)); },
+    // the deck landing on the table when you cut it
+    thump() { play(t => { tone(t, 130, .16, .56, "sine", 62); noise(t, .07, 1100, 380, .8, .25); }); },
+    // drawing one card from the spread
+    swish() { play(t => { noise(t, .12, 900, 3600, .9, .85); tone(t + .1, 1900, .05, .26, "sine", 2400); }); },
+    // turning a card over: a whoosh, then it lands
+    flip() { play(t => { noise(t, .15, 650, 3000, .9, .48); noise(t + .14, .05, 2000, 900, 1, .53); tone(t + .14, 160, .09, .48, "sine", 95); }); },
+    // the ring is full / the reading is complete
+    chime(soft) { play(t => { const k = soft ? .6 : 1; [[784, 0], [1174.7, .1], [1568, .2]].forEach(([f, d]) => { tone(t + d, f, 1.4, .22 * k); tone(t + d, f * 2.01, .7, .05 * k); tone(t + d, f * 3.98, .35, .02 * k); }); }); },
+    // the parrot
+    chirp() { play(t => { tone(t, 2500, .07, .38, "sine", 4300); tone(t + .085, 2800, .06, .34, "sine", 4700); tone(t + .16, 3400, .05, .21, "sine", 2900); }); }
+  };
+})();
+const Haptic = (() => {
+  const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  let last = 0;
+  function iosTap() { // iOS has no vibrate(); toggling a hidden switch control gives a light tap on iOS 18+
+    try {
+      const l = document.createElement("label"); l.setAttribute("aria-hidden", "true"); l.style.display = "none";
+      const i = document.createElement("input"); i.type = "checkbox"; i.setAttribute("switch", "");
+      l.appendChild(i); document.head.appendChild(l); l.click(); l.remove();
+    } catch (e) { /* not supported */ }
+  }
+  return {
+    buzz(pattern, minGap = 0) {
+      if (!Sound.on) return;
+      const now = performance.now(); if (now - last < minGap) return; last = now;
+      if (navigator.vibrate) { try { navigator.vibrate(pattern); return; } catch (e) { /* blocked */ } }
+      if (ios) { iosTap(); if (Array.isArray(pattern) && pattern.length > 2) setTimeout(iosTap, (pattern[0] || 0) + (pattern[1] || 0)); }
+    }
+  };
+})();
+const unlockAudio = () => Sound.unlock();
+document.addEventListener("pointerdown", unlockAudio, { capture: true });
+document.addEventListener("keydown", unlockAudio, { capture: true });
+function syncSoundBtn() {
+  const b = $("#soundBtn"); if (!b) return;
+  b.setAttribute("aria-pressed", String(Sound.on));
+  b.setAttribute("aria-label", Sound.on ? "Sound and vibration on. Turn off" : "Sound and vibration off. Turn on");
+  b.classList.toggle("off", !Sound.on);
+}
+
 let current = "home";
 function go(name) {
   const prev = current; current = name;
@@ -199,7 +289,7 @@ $("#askForm").addEventListener("submit", e => {
 
 /* ---------- 2. shuffle ---------- */
 const zone = $("#deckZone"), deckCards = $$("#deck i"), ring = $("#ringFill");
-let lastP = null, raf = 0, meterQueued = false;
+let lastP = null, raf = 0, meterQueued = false, ringDone = false;
 function updateMeters() {
   meterQueued = false;
   $("#mTouch").textContent = fmt(Ent.touch);
@@ -210,6 +300,7 @@ function updateMeters() {
   const btn = $("#shuffleDone");
   if (btn.dataset.busy) return;
   btn.disabled = pct < 1;
+  if (pct >= 1 && !ringDone && current === "shuffle") { ringDone = true; Sound.chime(); Haptic.buzz([18, 50, 18]); }
   btn.textContent = pct < 1 ? `Keep swirling · ${Math.round(pct * 100)}%` : "Seal the shuffle";
 }
 const queueMeters = () => { if (!meterQueued) { meterQueued = true; requestAnimationFrame(updateMeters); } };
@@ -229,6 +320,8 @@ function launch(t) {
   const ang = Math.atan2(lastDir.y, lastDir.x) + (Math.random() - .5) * 1.4 + (Math.random() < .35 ? Math.PI : 0);
   const dist = w * (.85 + Math.random() * .55), over = Math.random() < .5;
   st[ci].mv = { t0: t, dur: 480 + Math.random() * 280, dx: Math.cos(ang) * dist, dy: Math.sin(ang) * dist * .75, rot: (Math.random() - .5) * 46, over, swapped: false };
+  Sound.riffle(4 + Math.floor(Math.random() * 4));
+  Haptic.buzz(8, 360);
 }
 function deckLoop(t) {
   if (current !== "shuffle") { raf = 0; return; }
@@ -248,6 +341,7 @@ function deckLoop(t) {
       } else {
         if (!m.swapped) {
           m.swapped = true;
+          Sound.flick();
           order.splice(order.indexOf(ci), 1);
           const dest = m.over ? order.length : Math.floor(Math.random() * Math.max(1, order.length * .45));
           order.splice(dest, 0, ci);
@@ -333,6 +427,7 @@ $("#motionBtn").addEventListener("click", async () => {
   } catch (e) { $("#motionBtn").hidden = true; note.textContent = "Motion isn't available here. Your touch is plenty."; }
 });
 function enterShuffle() {
+  ringDone = false;
   Ent.touch = 0; Ent.motion = 0; Ent.moves = 0; Ent.lastAcc = null; Ent.lastOri = null; Ent.scroll = 0; Ent.path = 0; Ent.v = 6;
   const btn = $("#shuffleDone"); delete btn.dataset.busy;
   ring.style.transition = "none"; ring.style.strokeDashoffset = "100";
@@ -349,6 +444,7 @@ function enterShuffle() {
 $("#shuffleDone").addEventListener("click", seal);
 
 async function seal() {
+  Sound.riffle(16); Haptic.buzz(30);
   const btn = $("#shuffleDone");
   btn.dataset.busy = "1"; btn.disabled = true; btn.textContent = "Sealing your shuffle…";
   stopMotion();
@@ -384,6 +480,7 @@ $("#piles").addEventListener("click", e => {
   $$(".pile").forEach(p => p.classList.add(p === b ? "chosen" : "faded"));
   S.deck = [...S.piles[k], ...S.piles.filter((_, i) => i !== k).flat()];
   S.report.cut = { pile: ["left", "middle", "right"][k], size: S.piles[k].length };
+  Sound.thump(); Haptic.buzz(22);
   setTimeout(() => { delete $("#piles").dataset.locked; go("pick"); }, reduceMotion ? 100 : 650);
 });
 
@@ -405,6 +502,7 @@ function takeCard(i) {
   if (S.picks.length >= n || S.picks.includes(i)) return false;
   S.picks.push(i);
   const btn = $(`.fc[data-i="${i}"]`); if (btn) btn.classList.add("taken");
+  Sound.swish(); Haptic.buzz(12);
   const slot = $$("#pickSlots i")[S.picks.length - 1]; if (slot) slot.classList.add("on");
   if (S.picks.length === n) { $("#parrotPick").disabled = true; setTimeout(() => { buildReading(); go("read"); }, reduceMotion ? 150 : 750); }
   return true;
@@ -419,6 +517,7 @@ $("#parrotPick").addEventListener("click", () => {
     let i; do { i = S.stream.int(78); } while (S.picks.includes(i));
     const b = $(`.fc[data-i="${i}"]`);
     if (b) { b.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", inline: "center", block: "nearest" }); b.classList.add("peck"); }
+    Sound.chirp();
     S.report.parrot = true;
     setTimeout(() => { takeCard(i); if (left() > 0) setTimeout(step, reduceMotion ? 60 : 260); }, reduceMotion ? 60 : 420);
   };
@@ -464,6 +563,7 @@ function flip(i) {
   b.dataset.turned = "1";
   const c = r.cards[i], card = DECK[c.id], pos = SPREADS[r.spread].positions[i];
   b.querySelector(".face").innerHTML = ART.face(card);
+  Sound.flip(); Haptic.buzz(18);
   requestAnimationFrame(() => b.classList.add("flipped"));
   b.setAttribute("aria-label", `${pos.t}: ${card.name}${c.rev ? ", reversed" : ""}`);
   $("#note-" + i).outerHTML = noteHTML(r, c, i, true);
@@ -483,7 +583,7 @@ function finish() {
   const r = S.reading; if (!r) return;
   $("#revealAll").parentElement.hidden = true;
   $("#after").hidden = false;
-  if (!S.saved) { S.saved = true; r.savedOk = saveReading(r); }
+  if (!S.saved) { S.saved = true; r.savedOk = saveReading(r); Sound.chime(true); Haptic.buzz([12, 70, 24]); }
   renderAfter(r);
 }
 
@@ -689,6 +789,12 @@ const standalone = matchMedia("(display-mode: standalone)").matches || navigator
 if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !standalone && !inFrame) $("#iosHint").hidden = false;
 if (!inFrame) { try { if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {}); } catch (e) { /* not allowed here */ } }
 
+$("#soundBtn").addEventListener("click", () => {
+  Sound.set(!Sound.on); syncSoundBtn();
+  if (Sound.on) { Sound.chirp(); Haptic.buzz(15); }
+  toast(Sound.on ? "Sound and vibration on" : "Sound and vibration off");
+});
+syncSoundBtn();
 $("#lede").textContent = COPY.lede;
 $("#shuffleInstr").textContent = COPY.instr;
 $("#lTouch").textContent = COPY.l1;
