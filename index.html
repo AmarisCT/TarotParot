@@ -311,6 +311,12 @@ details.personal[open] summary::before { content: "−"; }
 .note.veiled .wait { font-style: italic; color: #e6d6b2; margin: 4px 0 0; }
 .chip { font-family: var(--sc); font-size: 13px; letter-spacing: .05em; border: 1px solid #d98a5c; color: #f4bf96; border-radius: 999px; padding: 1px 9px; }
 
+.answer { border-color: var(--gold); box-shadow: 0 10px 40px rgba(20, 8, 12, .35), inset 0 0 0 1px rgba(246, 224, 160, .25); }
+.answer p { margin: 0 0 12px; max-width: 36em; }
+.answer p:last-child { margin-bottom: 0; }
+.answer .eyebrow { margin-bottom: 6px; }
+.ans-q { font-family: var(--display); font-style: italic; font-size: 20px; color: #ecdcb8; }
+.verdict { font-family: var(--display); font-size: clamp(28px, 7vw, 38px); line-height: 1.12; color: var(--gold-hi); text-wrap: balance; }
 .summary h2 { font-size: 30px; margin-bottom: 8px; }
 .summary p { margin: 0 0 12px; max-width: 36em; }
 .summary p:last-child { margin-bottom: 0; }
@@ -476,6 +482,7 @@ details.personal[open] summary::before { content: "−"; }
     <div class="notes" id="notes"></div>
     <div id="after" hidden>
       <div class="notes">
+        <article class="panel answer" id="answer" aria-live="polite"></article>
         <article class="panel summary" id="summary"></article>
         <details class="panel entropy" id="entropy"></details>
         <p class="saved-line" id="savedLine"></p>
@@ -676,6 +683,15 @@ function yesNo(cards) {
   if (s <= -2) return { lean: "no", text: "The cards lean toward no, or not in the way you're picturing it.", short: "it's leaning no, for now" };
   return { lean: "maybe", text: "The answer isn't fixed. It depends on choices you are still making, so the cards below show what tips it.", short: "it could go either way, and it's up to you" };
 }
+function whenVerdict(cards) {
+  if (cards.some(c => c.id === 29 && !c.rev)) return "Soon, likely within days. The Eight of Wands says things move fast.";
+  if (cards.some(c => (c.id === 12 || c.id === 53) && !c.rev)) return "After a pause. Things move once a period of rest or waiting has passed.";
+  const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 }; let majors = 0;
+  cards.forEach(c => { if (c.suit) counts[c.suit]++; else majors++; });
+  if (majors > cards.length / 2) return "When you are ready. This is tied to a bigger shift, not a set clock.";
+  const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+  return { wands: "Fairly soon, within days to a few weeks, once you take action.", swords: "Within weeks, once a decision is made or a conversation happens.", cups: "In a few months, as feelings settle and things unfold naturally.", pentacles: "Slowly and steadily, over a season or longer, built step by step." }[top];
+}
 function whenText(cards) {
   if (cards.some(c => c.id === 29 && !c.rev)) return "Timing looks quick: the Eight of Wands says things move fast, likely within days.";
   if (cards.some(c => (c.id === 12 || c.id === 53) && !c.rev)) return "Timing involves a pause. Things move after a period of rest or waiting, not right away.";
@@ -684,6 +700,87 @@ function whenText(cards) {
   if (majors > cards.length / 2) return "Timing is tied to a bigger shift. It happens when you are ready, not on a set clock.";
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   return { wands: "Timing looks fairly quick, within days to a few weeks, once you take action.", swords: "Timing looks like weeks, once a decision is made or a conversation happens.", cups: "Timing looks like a few months, as feelings settle and things unfold naturally.", pentacles: "Timing is slow and steady, likely a season or longer, built step by step." }[top];
+}
+
+/* ===== A direct answer to the question ===== */
+function youify(q) {
+  const swaps = [[/\bam i\b/gi, "are you"], [/\bi am\b/gi, "you are"], [/\bi'm\b/gi, "you're"], [/\bwas i\b/gi, "were you"], [/\bi was\b/gi, "you were"],
+    [/\bi've\b/gi, "you've"], [/\bi'll\b/gi, "you'll"], [/\bi'd\b/gi, "you'd"], [/\bmyself\b/gi, "yourself"], [/\bmine\b/gi, "yours"],
+    [/\bmy\b/gi, "your"], [/\bme\b/gi, "you"], [/\bi\b/gi, "you"]];
+  let s = (q || "").trim().replace(/[’]/g, "'");
+  for (const [re, to] of swaps) s = s.replace(re, to);
+  s = s.charAt(0).toUpperCase() + s.slice(1);
+  if (!/[?.!]$/.test(s)) s += "?";
+  return s;
+}
+const lc = s => s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+const first = s => (s.match(/^[^.!?]*[.!?]/) || [s])[0].trim();
+const rest = s => s.slice(first(s).length).trim();
+const nm = c => c.name + (c.rev ? ", reversed," : "");
+const nmEnd = c => c.name + (c.rev ? " reversed" : "");
+const mean = c => c.rev ? c.rvM : c.upM;
+const kws = c => { const p = (c.rev ? c.rv : c.up).split(" · "); return p.length > 1 ? p[0] + " and " + p[1] : p[0]; };
+// which card plays which part, per spread
+function roles(spread, cards) {
+  if (spread === "celtic") return { now: cards[0], block: cards[1], root: cards[2], past: cards[3], out: cards[9], adv: cards[6], fear: cards[8] };
+  if (spread === "three") return { past: cards[0], now: cards[1], out: cards[2], adv: cards[1], root: cards[0] };
+  return { now: cards[0], out: cards[0], adv: cards[0], root: cards[0] };
+}
+function answerReading(r) {
+  const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
+  const A = analyzeQuestion(r.question), R = roles(r.spread, cards), single = cards.length === 1;
+  const q = r.question ? youify(r.question) : "";
+  const isShould = /^\s*should\b/i.test(r.question || "") || /\bshould i\b/i.test(r.question || "");
+  const lens = c => A.topic ? lensFor(A.topic, c, c.rev) : "";
+  let verdict = "", lines = [];
+  // the story the cards tell, in their positions
+  const story = single
+    ? `${nmEnd(R.now)} came up for this. ${mean(R.now)}`
+    : r.spread === "three"
+      ? `Looking back, ${nm(R.past)} shows this grew out of ${kws(R.past)}. Right now, ${nmEnd(R.now)} says ${lc(first(mean(R.now)))} Ahead, ${nm(R.out)} points to ${kws(R.out)}.`
+      : `At the heart of it is ${nmEnd(R.now)}: ${lc(first(mean(R.now)))} What stands in your way is ${nmEnd(R.block)}, which means ${kws(R.block)}. Underneath it all sits ${nmEnd(R.root)}, ${kws(R.root)}. Where this is heading is ${nmEnd(R.out)}: ${lc(first(mean(R.out)))}`;
+  const advice = single ? (rest(mean(R.adv)) || first(mean(R.adv))) : first(mean(R.adv)) + (rest(mean(R.adv)) ? " " + rest(mean(R.adv)) : "");
+  if (A.type === "yesno") {
+    const pool = single ? cards : cards.concat([R.out, R.out]);
+    const yn = yesNo(pool);
+    verdict = {
+      yes: isShould ? "Yes. The cards say go for it." : "Likely yes.",
+      no: isShould ? "Not right now." : "Unlikely, as things stand.",
+      maybe: isShould ? "It's your call, and the cards show what tips it." : "It could go either way.",
+      wait: "Not yet. Give it time.",
+      unclear: "The answer is still hidden."
+    }[yn.lean];
+    lines.push(story);
+    if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
+    lines.push({
+      yes: isShould ? `So if it feels right, go ahead, and keep ${nmEnd(R.adv)} in mind: ${lc(advice)}` : `What helps it happen: ${lc(advice)}`,
+      no: isShould ? `Hold off, or change the plan first. ${nmEnd(R.adv)} shows what needs attention: ${lc(advice)}` : `If you want a different outcome, this is what would need to change: ${lc(advice)}`,
+      maybe: `What tips it in your favor: ${lc(advice)}`,
+      wait: `Use the waiting time well: ${lc(advice)}`,
+      unclear: `Something important isn't visible yet. Gather more information, then ask again. Meanwhile: ${lc(advice)}`
+    }[yn.lean]);
+  } else if (A.type === "when") {
+    verdict = whenVerdict(cards);
+    lines.push(story);
+    lines.push(`What speeds it up: ${lc(advice)}`);
+  } else if (A.type === "how") {
+    verdict = `Here's how: ${kws(R.adv)}.`;
+    lines.push(`Your guide is ${nmEnd(R.adv)}. ${advice}`);
+    if (!single) lines.push(`Do that, and it leads toward ${nmEnd(R.out)}: ${lc(first(mean(R.out)))}`);
+    if (lens(R.adv)) lines.push(`For ${A.topic.label}: ${lc(lens(R.adv))}`);
+  } else if (A.type === "why") {
+    verdict = `Because of ${kws(R.root)}.`;
+    lines.push(`The root of it is ${nmEnd(R.root)}. ${mean(R.root)}`);
+    if (!single && R.now !== R.root) lines.push(`That's why ${nmEnd(R.now)} shows up right now: ${lc(first(mean(R.now)))}`);
+    lines.push(`What changes it: ${lc(advice)}`);
+  } else {
+    verdict = single ? `${R.now.name}${R.now.rev ? " reversed" : ""}: ${kws(R.now)}.` : `The message is ${kws(R.now)}, heading toward ${kws(R.out)}.`;
+    lines.push(story);
+    if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
+    if (!single) lines.push(`Your advice: ${lc(advice)}`);
+  }
+  if (A.topic && A.topic.key === "health") lines.push("Tarot is for reflection, so for anything medical, check in with a doctor too.");
+  return { question: q, verdict, lines };
 }
 
 /* ===== Original card art for TarotParot, drawn as SVG ===== */
@@ -1664,13 +1761,7 @@ function synth(r) {
   const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
   const sp = SPREADS[r.spread], n = cards.length, out = [];
   const A = analyzeQuestion(r.question);
-  const lead = [];
-  if (A.topic) lead.push(`You asked about ${A.topic.label}, so every card here is read through that lens.`);
-  if (A.type === "yesno") lead.push(yesNo(cards).text);
-  if (A.type === "when") lead.push(whenText(cards));
-  if (A.type === "how") { const adv = cards[n - 1]; lead.push(`For how to move forward, ${adv.name}${adv.rev ? " reversed" : ""} is your advice card: ${kw2(adv.rev ? adv.rv : adv.up)}.`); }
-  if (A.type === "why" && n > 1) { const root = cards[r.spread === "celtic" ? 2 : 0]; lead.push(`For why this is happening, look at ${root.name}${root.rev ? " reversed" : ""} in the ${sp.positions[r.spread === "celtic" ? 2 : 0].t.replace(/^The /, "").toLowerCase()} position: ${kw2(root.rev ? root.rv : root.up)}.`); }
-  if (lead.length) out.push(lead.join(" "));
+
   const majors = cards.filter(c => c.arcana === "major"), revs = cards.filter(c => c.rev);
   const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 };
   cards.forEach(c => { if (c.suit) counts[c.suit]++; });
@@ -1732,8 +1823,13 @@ function entropyHTML(rep) {
   const fp = (rep.seed || "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
   return `<summary>What shaped your shuffle</summary><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl><p class="fp">Shuffle fingerprint <code>${fp}</code></p><p class="hint">All of this stayed on your ${kind}. Nothing was sent anywhere, and the same mix can never happen twice.</p>`;
 }
+function answerHTML(r) {
+  const a = answerReading(r);
+  return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map(l => `<p>${esc(l)}</p>`).join("")}`;
+}
 function renderAfter(r) {
-  $("#summary").innerHTML = `<h2>Your reading</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
+  $("#answer").innerHTML = answerHTML(r);
+  $("#summary").innerHTML = `<h2>The bigger picture</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
   $("#entropy").innerHTML = entropyHTML(r.report);
   $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
 }
@@ -1742,7 +1838,8 @@ function readingText(r) {
   const lines = [`TarotParot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
   const A = analyzeQuestion(r.question);
   r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
-  lines.push("", ...synth(r), "", parrotLine(r));
+  const a = answerReading(r);
+  lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines, "", ...synth(r), "", parrotLine(r));
   if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
   return lines.join("\n");
 }

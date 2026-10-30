@@ -278,6 +278,12 @@ details.personal[open] summary::before { content: "−"; }
 .note.veiled .wait { font-style: italic; color: #e6d6b2; margin: 4px 0 0; }
 .chip { font-family: var(--sc); font-size: 13px; letter-spacing: .05em; border: 1px solid #d98a5c; color: #f4bf96; border-radius: 999px; padding: 1px 9px; }
 
+.answer { border-color: var(--gold); box-shadow: 0 10px 40px rgba(20, 8, 12, .35), inset 0 0 0 1px rgba(246, 224, 160, .25); }
+.answer p { margin: 0 0 12px; max-width: 36em; }
+.answer p:last-child { margin-bottom: 0; }
+.answer .eyebrow { margin-bottom: 6px; }
+.ans-q { font-family: var(--display); font-style: italic; font-size: 20px; color: #ecdcb8; }
+.verdict { font-family: var(--display); font-size: clamp(28px, 7vw, 38px); line-height: 1.12; color: var(--gold-hi); text-wrap: balance; }
 .summary h2 { font-size: 30px; margin-bottom: 8px; }
 .summary p { margin: 0 0 12px; max-width: 36em; }
 .summary p:last-child { margin-bottom: 0; }

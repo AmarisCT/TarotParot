@@ -592,13 +592,7 @@ function synth(r) {
   const cards = r.cards.map(c => Object.assign({}, DECK[c.id], { rev: c.rev }));
   const sp = SPREADS[r.spread], n = cards.length, out = [];
   const A = analyzeQuestion(r.question);
-  const lead = [];
-  if (A.topic) lead.push(`You asked about ${A.topic.label}, so every card here is read through that lens.`);
-  if (A.type === "yesno") lead.push(yesNo(cards).text);
-  if (A.type === "when") lead.push(whenText(cards));
-  if (A.type === "how") { const adv = cards[n - 1]; lead.push(`For how to move forward, ${adv.name}${adv.rev ? " reversed" : ""} is your advice card: ${kw2(adv.rev ? adv.rv : adv.up)}.`); }
-  if (A.type === "why" && n > 1) { const root = cards[r.spread === "celtic" ? 2 : 0]; lead.push(`For why this is happening, look at ${root.name}${root.rev ? " reversed" : ""} in the ${sp.positions[r.spread === "celtic" ? 2 : 0].t.replace(/^The /, "").toLowerCase()} position: ${kw2(root.rev ? root.rv : root.up)}.`); }
-  if (lead.length) out.push(lead.join(" "));
+
   const majors = cards.filter(c => c.arcana === "major"), revs = cards.filter(c => c.rev);
   const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 };
   cards.forEach(c => { if (c.suit) counts[c.suit]++; });
@@ -660,8 +654,13 @@ function entropyHTML(rep) {
   const fp = (rep.seed || "").slice(0, 16).replace(/(.{4})/g, "$1 ").trim();
   return `<summary>What shaped your shuffle</summary><dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${esc(v)}</dd>`).join("")}</dl><p class="fp">Shuffle fingerprint <code>${fp}</code></p><p class="hint">All of this stayed on your ${kind}. Nothing was sent anywhere, and the same mix can never happen twice.</p>`;
 }
+function answerHTML(r) {
+  const a = answerReading(r);
+  return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map(l => `<p>${esc(l)}</p>`).join("")}`;
+}
 function renderAfter(r) {
-  $("#summary").innerHTML = `<h2>Your reading</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
+  $("#answer").innerHTML = answerHTML(r);
+  $("#summary").innerHTML = `<h2>The bigger picture</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
   $("#entropy").innerHTML = entropyHTML(r.report);
   $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
 }
@@ -670,7 +669,8 @@ function readingText(r) {
   const lines = [`TarotParot · ${sp.name} · ${dateOf(new Date(r.ts))}`, r.question ? `Question: ${r.question}` : "An open reading", ""];
   const A = analyzeQuestion(r.question);
   r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
-  lines.push("", ...synth(r), "", parrotLine(r));
+  const a = answerReading(r);
+  lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines, "", ...synth(r), "", parrotLine(r));
   if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
   return lines.join("\n");
 }
