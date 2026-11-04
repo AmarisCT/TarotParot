@@ -234,6 +234,8 @@ const Sound = (() => {
     chirp() { play(t => { tone(t, 2500, .07, .38, "sine", 4300); tone(t + .085, 2800, .06, .34, "sine", 4700); tone(t + .16, 3400, .05, .21, "sine", 2900); }); }
   };
 })();
+const Vibe = { on: store.get("tp.vibe", true) !== false };
+const Detail = { on: store.get("tp.detail", true) !== false };
 const Haptic = (() => {
   const ios = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   let last = 0;
@@ -246,7 +248,7 @@ const Haptic = (() => {
   }
   return {
     buzz(pattern, minGap = 0) {
-      if (!Sound.on) return;
+      if (!Vibe.on) return;
       const now = performance.now(); if (now - last < minGap) return; last = now;
       if (navigator.vibrate) { try { navigator.vibrate(pattern); return; } catch (e) { /* blocked */ } }
       if (ios) { iosTap(); if (Array.isArray(pattern) && pattern.length > 2) setTimeout(iosTap, (pattern[0] || 0) + (pattern[1] || 0)); }
@@ -259,8 +261,9 @@ document.addEventListener("keydown", unlockAudio, { capture: true });
 function syncSoundBtn() {
   const b = $("#soundBtn"); if (!b) return;
   b.setAttribute("aria-pressed", String(Sound.on));
-  b.setAttribute("aria-label", Sound.on ? "Sound and vibration on. Turn off" : "Sound and vibration off. Turn on");
+  b.setAttribute("aria-label", Sound.on ? "Sound on. Turn off" : "Sound off. Turn on");
   b.classList.toggle("off", !Sound.on);
+  const c = $("#setSound"); if (c) c.checked = Sound.on;
 }
 
 let current = "home";
@@ -695,11 +698,11 @@ function entropyHTML(rep) {
 }
 function answerHTML(r) {
   const a = answerReading(r, SPREADS[r.spread].positions);
-  return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map(l => `<p>${esc(l)}</p>`).join("")}`;
+  return `<p class="eyebrow">${a.question ? "Your answer" : "Your message"}</p>${a.question ? `<p class="ans-q">${esc(a.question)}</p>` : ""}<p class="verdict">${esc(a.verdict)}</p>${a.lines.map((l, i) => `<p${i ? ' class="more"' : ""}>${esc(l)}</p>`).join("")}${a.links.length ? `<div class="links"><p class="vlabel">How the cards work together</p>${a.links.map(l => `<p>${esc(l)}</p>`).join("")}</div>` : ""}<p class="symbolic">Tarot is symbolic. It reflects possibilities to think about, not certainties about people or the future.</p>`;
 }
 function renderAfter(r) {
   $("#answer").innerHTML = answerHTML(r);
-  renderMyNotes(r); renderClarifier(r);
+  renderMyNotes(r); renderClarifier(r); renderAI(r);
   $("#summary").innerHTML = `<h2>The bigger picture</h2>${synth(r).map(p => `<p>${esc(p)}</p>`).join("")}<p class="parrot-says">${esc(parrotLine(r))}</p>`;
   $("#entropy").innerHTML = entropyHTML(r.report);
   $("#savedLine").textContent = r.savedOk === false ? "This browser isn't keeping a journal, so this reading won't be saved." : "Saved to your journal on this device.";
@@ -710,7 +713,10 @@ function readingText(r) {
   const A = analyzeQuestion(r.question);
   r.cards.forEach((c, i) => { const k = DECK[c.id], lens = lensFor(A.topic, k, c.rev); lines.push(`${i + 1}. ${sp.positions[i].t}: ${k.name}${c.rev ? " (reversed)" : ""}`, `   ${c.rev ? k.rvM : k.upM}`); if (lens) lines.push(`   For ${A.topic.label}: ${lens}`); });
   const a = answerReading(r, SPREADS[r.spread].positions);
-  lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines, "", ...synth(r), "", parrotLine(r));
+  lines.push("", (a.question ? "Answer: " : "Message: ") + a.verdict, ...a.lines);
+  if (a.links.length) lines.push("", "How the cards work together:", ...a.links);
+  if (r.ai) lines.push("", "AI-written reading:", r.ai);
+  lines.push("", ...synth(r), "", parrotLine(r));
   if (r.report && r.report.seed) lines.push("", `Shuffle fingerprint: ${r.report.seed.slice(0, 16)}`);
   return lines.join("\n");
 }
@@ -731,13 +737,33 @@ function saveReading(r) {
   const ok = store.set(JKEY, j); updateJCount(); return ok;
 }
 function updateJCount() { const n = journal().length; $("#jcount").textContent = n ? String(n) : ""; }
-function enterJournal() {
-  const j = journal();
-  renderJStats();
-  if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
-  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span>${r.outcome ? `<span class="jout o-${esc(r.outcome)}">${esc((OUTCOMES.find(o => o[0] === r.outcome) || ["", ""])[1])}</span>` : ""}${r.note ? `<span class="jnote">${esc(r.note.slice(0, 120))}${r.note.length > 120 ? "…" : ""}</span>` : ""}</button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
+const JF = { q: "", fav: false, tag: "" };
+function journalMatches(r) {
+  if (JF.fav && !r.fav) return false;
+  if (JF.tag && !(r.tags || []).includes(JF.tag)) return false;
+  const q = JF.q.trim().toLowerCase(); if (!q) return true;
+  return [r.question, r.note, (r.tags || []).join(" "), SPREADS[r.spread] ? SPREADS[r.spread].name : "", ...r.cards.map(c => DECK[c.id].name)].join(" ").toLowerCase().includes(q);
 }
+function renderJTools(j) {
+  const tags = [...new Set(j.flatMap(r => r.tags || []))].sort();
+  $("#jtools").hidden = !j.length;
+  $("#jfav").setAttribute("aria-pressed", String(JF.fav));
+  $("#jtags").innerHTML = tags.map(t => `<button type="button" class="chipbtn" data-tag="${esc(t)}" aria-pressed="${JF.tag === t}">#${esc(t)}</button>`).join("");
+}
+function enterJournal() {
+  const all = journal();
+  renderJStats(); renderJTools(all);
+  if (!all.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
+  const j = all.filter(journalMatches);
+  if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>No readings match. Try a different word, or clear the filters.</p></li>`; return; }
+  $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button type="button" class="jstar" data-id="${esc(r.id)}" aria-pressed="${!!r.fav}" aria-label="${r.fav ? "Remove from favorites" : "Add to favorites"}">${r.fav ? "★" : "☆"}</button><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span>${r.outcome ? `<span class="jout o-${esc(r.outcome)}">${esc((OUTCOMES.find(o => o[0] === r.outcome) || ["", ""])[1])}</span>` : ""}${r.note ? `<span class="jnote">${esc(r.note.slice(0, 120))}${r.note.length > 120 ? "…" : ""}</span>` : ""}${(r.tags || []).length ? `<span class="jtags">${r.tags.map(t => "#" + esc(t)).join(" ")}</span>` : ""}</button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
+}
+$("#jsearch").addEventListener("input", e => { JF.q = e.target.value; enterJournal(); });
+$("#jfav").addEventListener("click", () => { JF.fav = !JF.fav; enterJournal(); });
+$("#jtags").addEventListener("click", e => { const b = e.target.closest("[data-tag]"); if (!b) return; JF.tag = JF.tag === b.dataset.tag ? "" : b.dataset.tag; enterJournal(); });
 $("#jlist").addEventListener("click", e => {
+  const star = e.target.closest(".jstar");
+  if (star) { const r = journal().find(x => x.id === star.dataset.id); if (r) { updateEntry(r.id, { fav: !r.fav }); Haptic.buzz(10); enterJournal(); } return; }
   const del = e.target.closest(".jdel");
   if (del) {
     if (!del.classList.contains("armed")) { del.classList.add("armed"); del.textContent = "Tap to delete"; setTimeout(() => { del.classList.remove("armed"); del.textContent = "Delete"; }, 3000); return; }
@@ -979,17 +1005,47 @@ $("#clarifier").addEventListener("click", e => {
   updateEntry(S.reading.id, { clarifier: S.reading.clarifier });
   Sound.flip(); Haptic.buzz(18); renderClarifier(S.reading);
 });
-function renderMyNotes(r) {
-  $("#myNotes").innerHTML = `<h2>Your notes</h2><label class="sr" for="noteText">Notes on this reading</label><textarea id="noteText" rows="3" placeholder="What stood out? What happened next?">${esc(r.note || "")}</textarea>
-<p class="vlabel">Did it come true?</p><div class="outcomes" role="group" aria-label="Did it come true?">${OUTCOMES.map(([k, t]) => `<button type="button" class="chipbtn" data-o="${k}" aria-pressed="${r.outcome === k}">${t}</button>`).join("")}</div><p class="hint" id="noteSaved">Notes save automatically to your journal.</p>`;
+/* ---------- optional AI-written reading ----------
+   Switched off until AI_ENDPOINT points at your own server (see ai-worker/README.md).
+   Nothing is ever sent unless the person taps the button after reading what will be sent. */
+const AI_ENDPOINT = "";
+function renderAI(r) {
+  const el = $("#aiPanel"); if (!el) return;
+  if (!AI_ENDPOINT) { el.hidden = true; return; }
+  el.hidden = false;
+  if (r.ai) { el.innerHTML = `<p class="eyebrow">AI-written reading</p>${r.ai.split(/\n\n+/).map(p => `<p>${esc(p)}</p>`).join("")}<p class="hint">Written by Claude, an AI, from your question and these exact cards. The cards were not changed. It's a symbolic interpretation, not a prediction.</p>`; return; }
+  el.innerHTML = `<p class="eyebrow">Want it in words?</p><p>An AI can write one flowing reading that ties your question and these cards together. The cards stay exactly as drawn.</p><p class="hint"><b>What gets sent:</b> ${r.question ? "your question, " : ""}the spread and the cards you drew go to an AI service (Claude, by Anthropic) through TarotParrot's server. Your birthday, notes and journal are never sent.</p><div class="row left"><button class="btn ghost small" type="button" id="aiBtn">Write my reading with AI</button></div><p class="hint" id="aiStatus" role="status"></p>`;
 }
-let noteTimer = 0;
+$("#aiPanel").addEventListener("click", async e => {
+  if (!e.target.closest("#aiBtn") || !S.reading) return;
+  const r = S.reading, btn = $("#aiBtn"); btn.disabled = true; $("#aiStatus").textContent = "Writing your reading…";
+  try {
+    const body = { question: r.question || "", spread: SPREADS[r.spread].name, cards: r.cards.map((c, i) => ({ position: SPREADS[r.spread].positions[i].t, meaning: SPREADS[r.spread].positions[i].d, card: DECK[c.id].name, reversed: !!c.rev })) };
+    const res = await fetch(AI_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.text) throw new Error(data.error || "The AI service didn't answer.");
+    r.ai = String(data.text).slice(0, 4000); updateEntry(r.id, { ai: r.ai }); renderAI(r); Sound.chime(true);
+  } catch (err) { btn.disabled = false; $("#aiStatus").textContent = "Couldn't reach the AI right now. Your reading above is unchanged. Try again in a minute."; }
+});
+function renderMyNotes(r) {
+  $("#myNotes").innerHTML = `<div class="notes-head"><h2>Your notes</h2><button type="button" class="favbtn" id="favBtn" aria-pressed="${!!r.fav}" aria-label="${r.fav ? "Remove from favorites" : "Add to favorites"}">${r.fav ? "★" : "☆"} <span>${r.fav ? "Favorite" : "Favorite"}</span></button></div><label class="sr" for="noteText">Notes on this reading</label><textarea id="noteText" rows="3" placeholder="What stood out? What happened next?">${esc(r.note || "")}</textarea>
+<p class="vlabel">Did it come true?</p><div class="outcomes" role="group" aria-label="Did it come true?">${OUTCOMES.map(([k, t]) => `<button type="button" class="chipbtn" data-o="${k}" aria-pressed="${r.outcome === k}">${t}</button>`).join("")}</div><label class="vlabel" for="tagText">Tags</label><input type="text" id="tagText" placeholder="love, work, full moon…" value="${esc((r.tags || []).join(", "))}" autocomplete="off"><p class="hint" id="noteSaved">Notes and tags save automatically to your journal.</p>`;
+}
+let noteTimer = 0, tagTimer = 0;
+const parseTags = v => [...new Set(v.split(",").map(t => t.trim().toLowerCase().replace(/\s+/g, " ")).filter(Boolean))].slice(0, 12);
+$("#myNotes").addEventListener("input", e => {
+  if (e.target.id !== "tagText" || !S.reading) return;
+  clearTimeout(tagTimer); const id = S.reading.id, v = e.target.value;
+  tagTimer = setTimeout(() => { if (updateEntry(id, { tags: parseTags(v) })) $("#noteSaved").textContent = "Saved."; }, 500);
+});
 $("#myNotes").addEventListener("input", e => {
   if (e.target.id !== "noteText" || !S.reading) return;
   clearTimeout(noteTimer); const id = S.reading.id, v = e.target.value;
   noteTimer = setTimeout(() => { if (updateEntry(id, { note: v })) $("#noteSaved").textContent = "Saved."; }, 400);
 });
 $("#myNotes").addEventListener("click", e => {
+  const f = e.target.closest("#favBtn");
+  if (f && S.reading) { const v = !S.reading.fav; updateEntry(S.reading.id, { fav: v }); f.setAttribute("aria-pressed", String(v)); f.firstChild.textContent = v ? "★ " : "☆ "; f.setAttribute("aria-label", v ? "Remove from favorites" : "Add to favorites"); Haptic.buzz(10); toast(v ? "Added to favorites" : "Removed from favorites"); return; }
   const b = e.target.closest(".chipbtn"); if (!b || !S.reading) return;
   const o = S.reading.outcome === b.dataset.o ? "" : b.dataset.o;
   updateEntry(S.reading.id, { outcome: o });
@@ -1116,11 +1172,14 @@ function applyStill() { document.body.classList.toggle("still", Still.on); if (S
 $("#still").addEventListener("change", e => { Still.on = e.target.checked; store.set("tp.still", Still.on); applyStill(); toast(Still.on ? "Background paused to save battery" : "Background moving again"); });
 applyStill();
 
-$("#soundBtn").addEventListener("click", () => {
-  Sound.set(!Sound.on); syncSoundBtn();
-  if (Sound.on) { Sound.chirp(); Haptic.buzz(15); }
-  toast(Sound.on ? "Sound and vibration on" : "Sound and vibration off");
-});
+function setSound(v) { Sound.set(v); syncSoundBtn(); if (v) Sound.chirp(); toast(v ? "Sound on" : "Sound off"); }
+$("#soundBtn").addEventListener("click", () => setSound(!Sound.on));
+$("#setSound").addEventListener("change", e => setSound(e.target.checked));
+$("#setVibe").checked = Vibe.on;
+$("#setVibe").addEventListener("change", e => { Vibe.on = e.target.checked; store.set("tp.vibe", Vibe.on); if (Vibe.on) Haptic.buzz([15, 40, 15]); toast(Vibe.on ? "Vibration on" : "Vibration off"); });
+function applyDetail() { document.body.classList.toggle("short", !Detail.on); $$('input[name="detail"]').forEach(x => { x.checked = (x.value === "detailed") === Detail.on; }); }
+$$('input[name="detail"]').forEach(x => x.addEventListener("change", () => { Detail.on = x.value === "detailed"; store.set("tp.detail", Detail.on); applyDetail(); }));
+applyDetail();
 syncSoundBtn();
 $("#lede").textContent = COPY.lede;
 $("#shuffleInstr").textContent = COPY.instr;

@@ -75,13 +75,13 @@ function yesNo(cards) {
   return { lean: "maybe", text: "The answer isn't fixed. It depends on choices you are still making, so the cards below show what tips it.", short: "it could go either way, and it's up to you" };
 }
 function whenVerdict(cards) {
-  if (cards.some(c => c.id === 29 && !c.rev)) return "Soon, likely within days. The Eight of Wands says things move fast.";
-  if (cards.some(c => (c.id === 12 || c.id === 53) && !c.rev)) return "After a pause. Things move once a period of rest or waiting has passed.";
+  if (cards.some(c => c.id === 29 && !c.rev)) return "The cards suggest soon, perhaps within days. The Eight of Wands is about speed.";
+  if (cards.some(c => (c.id === 12 || c.id === 53) && !c.rev)) return "The cards suggest after a pause. Things move once a period of rest or waiting has passed.";
   const counts = { wands: 0, cups: 0, swords: 0, pentacles: 0 }; let majors = 0;
   cards.forEach(c => { if (c.suit) counts[c.suit]++; else majors++; });
-  if (majors > cards.length / 2) return "When you are ready. This is tied to a bigger shift, not a set clock.";
+  if (majors > cards.length / 2) return "The cards suggest when you are ready. This is tied to a bigger shift, not a set clock.";
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
-  return { wands: "Fairly soon, within days to a few weeks, once you take action.", swords: "Within weeks, once a decision is made or a conversation happens.", cups: "In a few months, as feelings settle and things unfold naturally.", pentacles: "Slowly and steadily, over a season or longer, built step by step." }[top];
+  return { wands: "The cards suggest fairly soon, within days to a few weeks, once you take action.", swords: "The cards suggest within weeks, once a decision is made or a conversation happens.", cups: "The cards suggest a few months, as feelings settle and things unfold naturally.", pentacles: "The cards suggest slowly and steadily, over a season or longer." }[top];
 }
 function whenText(cards) {
   if (cards.some(c => c.id === 29 && !c.rev)) return "Timing looks quick: the Eight of Wands says things move fast, likely within days.";
@@ -91,6 +91,65 @@ function whenText(cards) {
   if (majors > cards.length / 2) return "Timing is tied to a bigger shift. It happens when you are ready, not on a set clock.";
   const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
   return { wands: "Timing looks fairly quick, within days to a few weeks, once you take action.", swords: "Timing looks like weeks, once a decision is made or a conversation happens.", cups: "Timing looks like a few months, as feelings settle and things unfold naturally.", pentacles: "Timing is slow and steady, likely a season or longer, built step by step." }[top];
+}
+
+/* ===== How the cards work together ===== */
+// classic elemental pairing: Fire+Air and Water+Earth support; Fire vs Water and Air vs Earth pull against each other
+const MAJOR_EL = ["Air","Air","Water","Earth","Fire","Earth","Air","Water","Fire","Earth","Fire","Air","Water","Water","Fire","Earth","Fire","Air","Water","Fire","Fire","Earth"];
+const EL_NOUN = { Fire: "drive", Water: "feeling", Air: "thought", Earth: "practical ground" };
+const elOf = c => c.arcana === "major" ? MAJOR_EL[c.num] : SUITS[c.suit].element;
+function relation(a, b) {
+  const x = elOf(a), y = elOf(b);
+  if (x === y) return "same";
+  const pair = [x, y].sort().join("+");
+  if (pair === "Air+Fire" || pair === "Earth+Water") return "support";
+  if (pair === "Fire+Water" || pair === "Air+Earth") return "tension";
+  return "neutral";
+}
+function connectCards(cards, positions, spread) {
+  const n = cards.length; if (n < 2) return [];
+  const P = i => positions && positions[i] ? positions[i].t.toLowerCase().replace(/\boption ([ab])\b/, (m, x) => "option " + x.toUpperCase()) : "card " + (i + 1);
+  const name = c => c.name + (c.rev ? " reversed" : "");
+  const kw = c => (c.rev ? c.rv : c.up).split(" · ")[0];
+  // the pairs that matter most for each spread
+  const pairs = spread === "three" ? [[0, 1], [1, 2]]
+    : spread === "celtic" ? [[0, 1], [2, 0], [0, 9], [6, 9]]
+    : spread === "love" ? [[0, 1], [2, 3], [2, 4]]
+    : spread === "decision" ? [[0, 1], [2, 3]]
+    : spread === "career" ? [[1, 2], [2, 3]]
+    : spread === "growth" ? [[0, 1], [1, 2]]
+    : spread === "newmoon" ? [[0, 1], [2, 3]]
+    : spread === "fullmoon" ? [[0, 2], [3, 4]]
+    : [[0, n - 1]];
+  const out = [];
+  for (const [i, j] of pairs) {
+    if (!cards[i] || !cards[j]) continue;
+    const a = cards[i], b = cards[j], rel = relation(a, b), ea = elOf(a), eb = elOf(b);
+    let t;
+    if (spread === "decision" && i === 0 && j === 1) {
+      t = ea === eb ? `Both options carry the same energy, ${EL_NOUN[ea]}, so the choice is less about which path and more about how you walk it.`
+        : `The two options feel different: option A runs on ${EL_NOUN[ea]} (${kw(a)}), option B on ${EL_NOUN[eb]} (${kw(b)}). Ask which of those you need more right now.`;
+      out.push(t); continue;
+    }
+    if (a.rev !== b.rev) {
+      const up = a.rev ? b : a, dn = a.rev ? a : b, upI = a.rev ? j : i, dnI = a.rev ? i : j;
+      t = `${name(up)} (${P(upI)}) is out in the open, while ${name(dn)} (${P(dnI)}) is turned inward. The first shows ${kw(up)} plainly; the second holds ${kw(dn)} beneath the surface, still unresolved.`;
+    } else if (rel === "support") {
+      t = `${name(a)} (${P(i)}) and ${name(b)} (${P(j)}) work well together: ${EL_NOUN[ea]} and ${EL_NOUN[eb]} naturally support each other, so what happens with ${kw(a)} feeds into ${kw(b)}.`;
+    } else if (rel === "tension") {
+      t = `${name(a)} (${P(i)}) and ${name(b)} (${P(j)}) pull in different directions, ${EL_NOUN[ea]} against ${EL_NOUN[eb]}. Expect some friction between ${kw(a)} and ${kw(b)}, and look for a middle path.`;
+    } else if (rel === "same") {
+      t = `${name(a)} (${P(i)}) and ${name(b)} (${P(j)}) share the same element, ${EL_NOUN[ea]}, so this theme is doubled: ${kw(a)} and ${kw(b)} reinforce each other${a.rev && b.rev ? ", though both are blocked right now" : ""}.`;
+    } else {
+      t = `${name(a)} (${P(i)}) leads into ${name(b)} (${P(j)}): ${kw(a)} sets the stage for ${kw(b)}.`;
+    }
+    if (a.arcana !== b.arcana && rel !== "tension") t += ` ${a.arcana === "major" ? name(a) : name(b)} brings the bigger life lesson; ${a.arcana === "major" ? name(b) : name(a)} shows where it plays out day to day.`;
+    out.push(t);
+  }
+  // echoes across the whole spread
+  const nums = {}; cards.forEach(c => { if (c.rank && c.rank <= 10) (nums[c.rank] = nums[c.rank] || []).push(c); });
+  Object.values(nums).filter(g => g.length > 1).slice(0, 1).forEach(g => out.push(`${g.map(name).join(" and ")} echo the same number, so ${RANK_THEME[g[0].rank]} runs through the whole reading.`));
+  return out.slice(0, 4);
 }
 
 /* ===== A direct answer to the question ===== */
@@ -145,7 +204,7 @@ function answerReading(r, positions) {
     const m = (r.question || "").replace(/[?.!]+$/, "").match(/^(?:should|do|can|could|would|will)\s+i\s+(.+?)\s+or\s+(.+)$/i) || (r.question || "").replace(/[?.!]+$/, "").match(/^(.+?)\s+or\s+(.+)$/i);
     const nameA = m ? youify(m[1]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option A", nameB = m ? youify(m[2]).replace(/[?]$/, "").replace(/^./, x => x.toLowerCase()) : "option B";
     const sa = score(R.a), sb = score(R.b);
-    verdict = sa === sb ? "Both paths are close. The deciding factor matters more than the choice." : `${(sa > sb ? nameA : nameB).replace(/^./, x => x.toUpperCase())} looks stronger.`;
+    verdict = sa === sb ? "The cards see both paths as close. The deciding factor matters more than the choice." : (m ? `The cards favor the choice to ${sa > sb ? nameA : nameB}.` : `The cards favor ${sa > sb ? "option A" : "option B"}.`);
     lines.push(`If you ${nameA === "option A" ? "choose option A" : nameA}: ${nmEnd(R.a)}, ${kws(R.a)}. ${first(mean(R.a))}`);
     lines.push(`If you ${nameB === "option B" ? "choose option B" : nameB}: ${nmEnd(R.b)}, ${kws(R.b)}. ${first(mean(R.b))}`);
     lines.push(`Either way, ${nmEnd(cards[2])} shows the tradeoff: ${kws(cards[2])}. What to weigh most: ${lc(first(mean(cards[3])))}`);
@@ -154,17 +213,17 @@ function answerReading(r, positions) {
     const pool = single ? cards : cards.concat([R.out, R.out]);
     const yn = yesNo(pool);
     verdict = {
-      yes: isShould ? "Yes. The cards say go for it." : "Likely yes.",
-      no: isShould ? "Not right now." : "Unlikely, as things stand.",
-      maybe: isShould ? "It's your call, and the cards show what tips it." : "It could go either way.",
-      wait: "Not yet. Give it time.",
-      unclear: "The answer is still hidden."
+      yes: isShould ? "The cards lean yes." : "The cards lean toward yes.",
+      no: isShould ? "The cards suggest not right now." : "The cards lean toward no, as things stand.",
+      maybe: isShould ? "The cards say it's your call, and show what tips it." : "The cards suggest it could go either way.",
+      wait: "The cards suggest not yet. Give it time.",
+      unclear: "The cards keep this one hidden for now."
     }[yn.lean];
     lines.push(story);
     if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
     lines.push({
-      yes: isShould ? `So if it feels right, go ahead, and keep ${nmEnd(R.adv)} in mind: ${lc(advice)}` : `What helps it happen: ${lc(advice)}`,
-      no: isShould ? `Hold off, or change the plan first. ${nmEnd(R.adv)} shows what needs attention: ${lc(advice)}` : `If you want a different outcome, this is what would need to change: ${lc(advice)}`,
+      yes: isShould ? `So if it feels right, go ahead, and keep ${nmEnd(R.adv)} in mind. ${advice}` : `What helps it happen: ${lc(advice)}`,
+      no: isShould ? `Hold off, or change the plan first. ${nmEnd(R.adv)} shows what needs attention. ${advice}` : `If you want a different outcome, this is what would need to change: ${lc(advice)}`,
       maybe: `What tips it in your favor: ${lc(advice)}`,
       wait: `Use the waiting time well: ${lc(advice)}`,
       unclear: `Something important isn't visible yet. Gather more information, then ask again. Meanwhile: ${lc(advice)}`
@@ -177,14 +236,15 @@ function answerReading(r, positions) {
     const them = r.spread === "love" ? cards[1] : r.spread === "celtic" ? cards[7] : r.spread === "three" ? cards[1] : cards[0];
     const sub = A.sub || "they", poss = sub === "she" ? "Her" : sub === "he" ? "His" : sub === "they" ? "Their" : sub.charAt(0).toUpperCase() + sub.slice(1) + "'s";
     const FL = LENS[(A.topic || TOPICS[0]).key], feel = them.arcana === "major" ? FL.major : FL[them.suit];
-    verdict = `${poss} feelings: ${kws(them)}.`;
-    lines.push(`The card for ${sub === "they" ? "them" : sub === "she" ? "her" : sub === "he" ? "him" : sub} is ${nmEnd(them)}. ${feel[them.rev ? 1 : 0]}`);
+    verdict = `The cards suggest ${poss.toLowerCase().replace(/^your /, "your ")} feelings lean toward ${kws(them)}.`;
+    lines.push(`The card standing in for ${sub === "they" ? "them" : sub === "she" ? "her" : sub === "he" ? "him" : sub} is ${nmEnd(them)}. ${feel[them.rev ? 1 : 0]}`);
     lines.push(them.rev
-      ? `Reversed, it suggests the feelings are there but held back, confused or not being shown. That is about ${sub === "they" ? "where they are" : sub === "she" ? "where she is" : sub === "he" ? "where he is" : "where they are"}, not about your worth.`
-      : `Upright, these feelings are fairly open and active right now.`);
+      ? `Reversed, it can point to feelings that are held back, confused or not being shown. That would be about ${sub === "they" ? "where they are" : sub === "she" ? "where she is" : sub === "he" ? "where he is" : "where they are"}, not about your worth.`
+      : `Upright, it points to feelings that are fairly open and active.`);
+    lines.push(`Only ${sub === "they" ? "they" : sub === "she" ? "she" : sub === "he" ? "he" : sub} can say for sure what ${sub === "they" ? "they feel" : sub === "she" || sub === "he" ? sub + " feels" : "they feel"}. Read this as a reflection to talk through, not a fact.`);
     if (!single) lines.push(`Where it's heading: ${nmEnd(R.out)}, ${kws(R.out)}. ${R.adv !== them ? `Your best move: ${lc(first(mean(R.adv)))}` : ""}`.trim());
   } else if (A.type === "outcome") {
-    verdict = `It's heading toward ${kws(R.out)}.`;
+    verdict = `The cards point toward ${kws(R.out)}.`;
     lines.push(story);
     if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
     lines.push(`To make the most of it: ${lc(advice)}`);
@@ -194,16 +254,16 @@ function answerReading(r, positions) {
     if (!single) lines.push(`Do that, and it leads toward ${nmEnd(R.out)}: ${lc(first(mean(R.out)))}`);
     if (lens(R.adv)) lines.push(`For ${A.topic.label}: ${lc(lens(R.adv))}`);
   } else if (A.type === "why") {
-    verdict = `Because of ${kws(R.root)}.`;
+    verdict = `The cards point to ${kws(R.root)} at the root.`;
     lines.push(`The root of it is ${nmEnd(R.root)}. ${mean(R.root)}`);
     if (!single && R.now !== R.root) lines.push(`That's why ${nmEnd(R.now)} shows up right now: ${lc(first(mean(R.now)))}`);
     lines.push(`What changes it: ${lc(advice)}`);
   } else {
-    verdict = single ? `${R.now.name}${R.now.rev ? " reversed" : ""}: ${kws(R.now)}.` : `The message is ${kws(R.now)}, heading toward ${kws(R.out)}.`;
+    verdict = single ? `${R.now.name}${R.now.rev ? " reversed" : ""}: ${kws(R.now)}.` : `The cards speak of ${kws(R.now)}, moving toward ${kws(R.out)}.`;
     lines.push(story);
     if (lens(R.out)) lines.push(`For ${A.topic.label}: ${lc(lens(R.out))}`);
     if (!single) lines.push(`Your advice: ${lc(advice)}`);
   }
   if (A.topic && A.topic.key === "health") lines.push("Tarot is for reflection, so for anything medical, check in with a doctor too.");
-  return { question: q, verdict, lines };
+  return { question: q, verdict, lines, links: connectCards(cards, positions, r.spread) };
 }

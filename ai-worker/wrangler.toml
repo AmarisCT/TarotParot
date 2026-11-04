@@ -1,0 +1,7 @@
+name = "tarotparrot-ai"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+# The site allowed to use this server. Add more, comma-separated, if needed.
+ALLOWED_ORIGIN = "https://amarisct.github.io"

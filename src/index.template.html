@@ -94,8 +94,20 @@
     </form>
     <div class="homelinks">
       <button class="btn ghost" type="button" data-go="library">Learn the cards</button>
-      <label class="check" for="still"><input type="checkbox" id="still"> Still background (saves battery)</label>
     </div>
+    <details class="panel settings" id="settings">
+      <summary>Settings</summary>
+      <div class="settings-body">
+        <label class="check" for="setSound"><input type="checkbox" id="setSound" checked> Sound effects</label>
+        <label class="check" for="setVibe"><input type="checkbox" id="setVibe" checked> Vibration</label>
+        <label class="check" for="still"><input type="checkbox" id="still"> Still background (saves battery)</label>
+        <fieldset class="seg"><legend>Reading length</legend>
+          <label><input type="radio" name="detail" value="short"> <span>Short</span></label>
+          <label><input type="radio" name="detail" value="detailed" checked> <span>Detailed</span></label>
+        </fieldset>
+        <p class="hint">Short shows the answer and the cards. Detailed adds how the cards work together and the bigger picture.</p>
+      </div>
+    </details>
     <div class="install">
       <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParrot to your home screen</button>
       <p class="hint" id="iosHint" hidden>To keep TarotParrot on your home screen, tap Share, then Add to Home Screen.</p>
@@ -151,6 +163,7 @@
       <div class="notes">
         <article class="panel answer" id="answer" aria-live="polite"></article>
         <article class="panel summary" id="summary"></article>
+        <section class="panel aipanel" id="aiPanel" hidden></section>
         <section class="panel clarifier" id="clarifier" hidden></section>
         <section class="panel mynotes" id="myNotes"></section>
         <details class="panel entropy" id="entropy"></details>
@@ -168,6 +181,11 @@
   <section class="view" id="v-journal" aria-labelledby="h-journal">
     <h2 id="h-journal">Your journal</h2>
     <div class="panel jstats" id="jstats"></div>
+    <div class="panel jtools" id="jtools" hidden>
+      <label class="sr" for="jsearch">Search your journal</label>
+      <input type="search" id="jsearch" placeholder="Search questions, cards, notes or tags" autocomplete="off">
+      <div class="jfilters"><button type="button" class="chipbtn" id="jfav" aria-pressed="false">★ Favorites</button><span id="jtags"></span></div>
+    </div>
     <ul class="jlist" id="jlist"></ul>
     <div class="panel backup">
       <p class="vlabel">Back up your journal</p>
