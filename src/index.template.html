@@ -57,8 +57,46 @@
       <p class="eyebrow" id="skyLine">Tonight's sky</p>
       <h1 id="h-home">A little birdie told me.</h1>
       <p class="lede" id="lede">Every deck here is shuffled by you: your touch, the way your phone moves, the moon and the minute you ask. No two shuffles are ever the same.</p>
+      <div class="hero-ctas">
+        <button class="btn primary" type="button" data-go="ask">Ask the cards</button>
+        <button class="btn ghost" type="button" data-go="cosmic">Your cosmic profile</button>
+      </div>
     </div>
     <section class="panel daily" id="daily" aria-label="Card of the day"></section>
+    <section class="panel cosmic-sum" id="cosmicSummary" aria-label="Your cosmic profile"></section>
+    <section class="panel moon-today" id="moonToday" aria-label="The moon today"></section>
+    <section class="explore" aria-label="Explore">
+      <button class="tile" type="button" data-go="ask"><span class="tile-k">Readings</span><b>Ask the cards</b><small>Ten spreads, from a quick yes or no to the Celtic Cross</small></button>
+      <button class="tile" type="button" data-go="library"><span class="tile-k">Learn</span><b>The 78 cards</b><small>Every meaning, upright and reversed</small></button>
+      <button class="tile" type="button" data-go="journal"><span class="tile-k">Journal</span><b>Your readings</b><small>Notes, favorites and what came true</small></button>
+      <button class="tile" type="button" data-go="cosmic"><span class="tile-k">Astrology</span><b>Your birth chart</b><small>Sun, moon, rising and your cosmic deck</small></button>
+    </section>
+    <details class="panel settings" id="settings">
+      <summary>Settings</summary>
+      <div class="settings-body">
+        <label class="check" for="setSound"><input type="checkbox" id="setSound" checked> Sound effects</label>
+        <label class="check" for="setVibe"><input type="checkbox" id="setVibe" checked> Vibration</label>
+        <label class="check" for="still"><input type="checkbox" id="still"> Still background (saves battery)</label>
+        <fieldset class="seg"><legend>Reading length</legend>
+          <label><input type="radio" name="detail" value="short"> <span>Short</span></label>
+          <label><input type="radio" name="detail" value="detailed" checked> <span>Detailed</span></label>
+        </fieldset>
+        <p class="hint">Short shows the answer and the cards. Detailed adds how the cards work together and the bigger picture.</p>
+      </div>
+    </details>
+    <div class="install">
+      <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParrot to your home screen</button>
+      <p class="hint" id="iosHint" hidden>To keep TarotParrot on your home screen, tap Share, then Add to Home Screen.</p>
+    </div>
+  </section>
+
+  <!-- 1b. Ask -->
+  <section class="view" id="v-ask" aria-labelledby="h-ask">
+    <div class="hero">
+      <p class="eyebrow">Ask the cards</p>
+      <h2 id="h-ask">What's on your mind?</h2>
+      <p class="instr">Type your question, choose a spread, then shuffle the deck with your own hands.</p>
+    </div>
     <form class="panel" id="askForm" autocomplete="off">
       <div class="field">
         <label for="q">Your question</label>
@@ -92,26 +130,33 @@
       <label class="check" for="rev"><input type="checkbox" id="rev" checked> Include reversed cards</label>
       <button class="btn primary" type="submit">Begin the shuffle</button>
     </form>
-    <div class="homelinks">
-      <button class="btn ghost" type="button" data-go="library">Learn the cards</button>
+  </section>
+
+  <!-- 1c. Cosmic profile -->
+  <section class="view" id="v-cosmic" aria-labelledby="h-cosmic">
+    <div class="hero">
+      <p class="eyebrow">Astrology</p>
+      <h2 id="h-cosmic">Your cosmic profile</h2>
+      <p class="instr" id="cosmicIntro">Your birth chart, worked out from the exact moment and place you were born, with a tarot card for every planet.</p>
     </div>
-    <details class="panel settings" id="settings">
-      <summary>Settings</summary>
-      <div class="settings-body">
-        <label class="check" for="setSound"><input type="checkbox" id="setSound" checked> Sound effects</label>
-        <label class="check" for="setVibe"><input type="checkbox" id="setVibe" checked> Vibration</label>
-        <label class="check" for="still"><input type="checkbox" id="still"> Still background (saves battery)</label>
-        <fieldset class="seg"><legend>Reading length</legend>
-          <label><input type="radio" name="detail" value="short"> <span>Short</span></label>
-          <label><input type="radio" name="detail" value="detailed" checked> <span>Detailed</span></label>
-        </fieldset>
-        <p class="hint">Short shows the answer and the cards. Detailed adds how the cards work together and the bigger picture.</p>
+    <form class="panel cosmic-form" id="cosmicForm" autocomplete="off" hidden>
+      <div class="field"><label for="cName">Your name (optional)</label><input type="text" id="cName" maxlength="40" placeholder="So your profile can greet you"></div>
+      <div class="field"><label for="cDate">Birth date</label><input type="date" id="cDate" required max="2100-12-31"></div>
+      <div class="field"><label for="cTime">Birth time</label><input type="time" id="cTime">
+        <label class="check" for="cNoTime"><input type="checkbox" id="cNoTime"> I don't know my birth time</label>
+        <p class="hint">The time sets your rising sign and houses. Check a birth certificate if you can. Without it, you'll still get your sun, moon and planets.</p></div>
+      <div class="field"><label for="cPlace">Birth city</label><input type="text" id="cPlace" list="cityList" placeholder="Start typing, like Tacoma or Delhi"><datalist id="cityList"></datalist>
+        <p class="hint">Not listed? Pick the nearest big city, or <button type="button" class="link" id="cManualBtn">enter it yourself</button>.</p></div>
+      <div class="manual" id="cManual" hidden>
+        <div class="field"><label for="cLat">Latitude (north is positive)</label><input type="number" id="cLat" step="0.01" min="-90" max="90" placeholder="47.25"></div>
+        <div class="field"><label for="cLon">Longitude (east is positive, west is negative)</label><input type="number" id="cLon" step="0.01" min="-180" max="180" placeholder="-122.44"></div>
+        <div class="field"><label for="cTz">Time zone</label><select id="cTz"></select></div>
       </div>
-    </details>
-    <div class="install">
-      <button class="btn ghost small" type="button" id="installBtn" hidden>Add TarotParrot to your home screen</button>
-      <p class="hint" id="iosHint" hidden>To keep TarotParrot on your home screen, tap Share, then Add to Home Screen.</p>
-    </div>
+      <p class="err" id="cErr" role="alert"></p>
+      <div class="row left"><button class="btn primary" type="submit">Reveal my chart</button><button class="btn ghost" type="button" id="cCancel" hidden>Cancel</button></div>
+      <p class="hint">Your birth details stay on this device. Nothing is sent anywhere.</p>
+    </form>
+    <div id="cosmicResult" class="cosmic-result" hidden></div>
   </section>
 
   <!-- 2. Shuffle -->
@@ -171,7 +216,7 @@
         <div class="row">
           <button class="btn ghost" type="button" id="shareBtn">Share as image</button>
           <button class="btn ghost" type="button" id="copyBtn">Copy reading</button>
-          <button class="btn primary" type="button" data-go="home">New reading</button>
+          <button class="btn primary" type="button" data-go="ask">New reading</button>
         </div>
       </div>
     </div>

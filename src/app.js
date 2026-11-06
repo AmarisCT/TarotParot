@@ -272,7 +272,7 @@ function go(name) {
   $$(".view").forEach(v => v.classList.toggle("active", v.id === "v-" + name));
   window.scrollTo(0, 0);
   if (prev === "shuffle" && name !== "shuffle") stopMotion();
-  ({ home: enterHome, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal, library: enterLibrary })[name]?.();
+  ({ home: enterHome, ask: enterAsk, cosmic: enterCosmic, shuffle: enterShuffle, cut: enterCut, pick: enterPick, journal: enterJournal, library: enterLibrary })[name]?.();
 }
 document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -309,10 +309,13 @@ $("#bday").addEventListener("keydown", e => { if (e.key === "Enter") { e.prevent
 showBirthday();
 
 function enterHome() {
-  renderDaily(); showYearCard();
+  renderDaily(); renderCosmicSummary(); renderMoonToday();
+  $("#skyLine").textContent = skyLine();
+}
+function enterAsk() {
+  showYearCard();
   renderSpreadOpts(($('input[name="spread"]:checked') || {}).value || (store.get("tp.prefs", {}) || {}).spread || "three");
   Ent.reset(); S.deck = null; S.picks = []; S.reading = null; S.saved = false;
-  $("#skyLine").textContent = skyLine();
 }
 $("#q").addEventListener("keydown", e => {
   const now = performance.now();
@@ -753,7 +756,7 @@ function renderJTools(j) {
 function enterJournal() {
   const all = journal();
   renderJStats(); renderJTools(all);
-  if (!all.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="home">Start a reading</button></li>`; return; }
+  if (!all.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>Your finished readings will gather here, on this device only.</p><button class="btn primary" type="button" data-go="ask">Start a reading</button></li>`; return; }
   const j = all.filter(journalMatches);
   if (!j.length) { $("#jlist").innerHTML = `<li class="panel empty"><p>No readings match. Try a different word, or clear the filters.</p></li>`; return; }
   $("#jlist").innerHTML = j.map(r => `<li class="panel jitem"><button type="button" class="jstar" data-id="${esc(r.id)}" aria-pressed="${!!r.fav}" aria-label="${r.fav ? "Remove from favorites" : "Add to favorites"}">${r.fav ? "★" : "☆"}</button><button class="jopen" type="button" data-id="${esc(r.id)}"><time datetime="${esc(r.ts)}">${esc(dateOf(new Date(r.ts)))} · ${esc(SPREADS[r.spread].name)}</time><b>${esc(r.question || "An open reading")}</b><span class="jcards">${esc(r.cards.map(c => DECK[c.id].name + (c.rev ? " (rev.)" : "")).join(", "))}</span>${r.outcome ? `<span class="jout o-${esc(r.outcome)}">${esc((OUTCOMES.find(o => o[0] === r.outcome) || ["", ""])[1])}</span>` : ""}${r.note ? `<span class="jnote">${esc(r.note.slice(0, 120))}${r.note.length > 120 ? "…" : ""}</span>` : ""}${(r.tags || []).length ? `<span class="jtags">${r.tags.map(t => "#" + esc(t)).join(" ")}</span>` : ""}</button><button class="jdel" type="button" data-id="${esc(r.id)}">Delete</button></li>`).join("");
@@ -1174,6 +1177,156 @@ $("#still").addEventListener("change", e => { Still.on = e.target.checked; store
 applyStill();
 
 function setSound(v) { Sound.set(v); syncSoundBtn(); if (v) Sound.chirp(); toast(v ? "Sound on" : "Sound off"); }
+
+/* ---------- cosmic profile ---------- */
+const CKEY = "tp.cosmic.v1";
+const cosmicProfile = () => store.get(CKEY, null);
+let cosmicEditing = false;
+$("#cityList").innerHTML = CITIES.map(c => `<option value="${esc(c.label)}"></option>`).join("");
+try { let zones = []; try { zones = Intl.supportedValuesOf("timeZone"); } catch (e) { /* older browsers */ } zones = [...new Set(zones.concat(CITIES.map(c => c.tz)))].sort(); $("#cTz").innerHTML = zones.map(z => `<option value="${esc(z)}">${esc(z.replace(/_/g, " "))}</option>`).join(""); } catch (e) { /* ignore */ }
+try { $("#cTz").value = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (e) { /* ignore */ }
+$("#cManualBtn").addEventListener("click", () => { $("#cManual").hidden = false; $("#cLat").focus(); });
+$("#cNoTime").addEventListener("change", e => { $("#cTime").disabled = e.target.checked; });
+function findCity(text) {
+  const q = text.trim().toLowerCase(); if (!q) return null;
+  return CITIES.find(c => c.label.toLowerCase() === q) || CITIES.find(c => c.name.toLowerCase() === q) || CITIES.find(c => c.label.toLowerCase().startsWith(q)) || null;
+}
+function enterCosmic() {
+  const p = cosmicProfile();
+  if (!p || cosmicEditing) {
+    $("#cosmicForm").hidden = false; $("#cosmicResult").hidden = true; $("#cosmicIntro").hidden = false;
+    $("#cCancel").hidden = !p;
+    if (p) {
+      $("#cName").value = p.name || ""; $("#cDate").value = p.date; $("#cTime").value = p.time || ""; $("#cNoTime").checked = !!p.unknownTime; $("#cTime").disabled = !!p.unknownTime;
+      if (p.place.manual) { $("#cManual").hidden = false; $("#cPlace").value = ""; $("#cLat").value = p.place.lat; $("#cLon").value = p.place.lon; $("#cTz").value = p.place.tz; }
+      else $("#cPlace").value = p.place.label;
+    } else if (savedBday) $("#cDate").value = savedBday;
+    return;
+  }
+  $("#cosmicForm").hidden = true; $("#cosmicIntro").hidden = true; $("#cosmicResult").hidden = false;
+  renderCosmic(p);
+}
+$("#cCancel").addEventListener("click", () => { cosmicEditing = false; enterCosmic(); });
+$("#cosmicForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const err = m => { $("#cErr").textContent = m; };
+  const date = $("#cDate").value, unknownTime = $("#cNoTime").checked, time = $("#cTime").value;
+  if (!date) return err("Add your birth date.");
+  if (new Date(date) > new Date()) return err("That birth date is in the future. Check the year.");
+  if (+date.slice(0, 4) < 1900) return err("Charts here work for birth dates from 1900 onward.");
+  if (!unknownTime && !time) return err("Add your birth time, or tick “I don't know my birth time”.");
+  let place = null;
+  if (!$("#cManual").hidden && $("#cLat").value !== "" && $("#cLon").value !== "") {
+    const lat = +$("#cLat").value, lon = +$("#cLon").value;
+    if (!(Math.abs(lat) <= 90 && Math.abs(lon) <= 180)) return err("Latitude must be between -90 and 90, and longitude between -180 and 180.");
+    place = { label: `${lat.toFixed(2)}, ${lon.toFixed(2)}`, lat, lon, tz: $("#cTz").value, manual: true };
+  } else {
+    const c = findCity($("#cPlace").value);
+    if (!c) return err($("#cPlace").value.trim() ? "That city isn't on the list. Pick the nearest big city, or enter it yourself." : "Add the city you were born in.");
+    place = { label: c.label, lat: c.lat, lon: c.lon, tz: c.tz };
+  }
+  err("");
+  const p = { name: $("#cName").value.trim(), date, time: unknownTime ? "" : time, unknownTime, place };
+  store.set(CKEY, p);
+  if (!savedBday) { savedBday = date; savePrefs(); showBirthday(); }
+  cosmicEditing = false; Sound.chime(); Haptic.buzz([15, 50, 20]);
+  enterCosmic(); window.scrollTo(0, 0);
+});
+function chartWheel(ch) {
+  const C = 170, R1 = 160, R2 = 128, R3 = 92, base = ch.asc != null ? ch.asc : 0;
+  // longitude → screen angle: the rising degree sits at 9 o'clock, the zodiac runs counter-clockwise
+  const xy = (lon, r) => { const a = Math.PI - (lon - base) * Math.PI / 180; return [C + r * Math.cos(a), C - r * Math.sin(a)]; };
+  const ELC = { Fire: "rgba(201,96,46,.30)", Earth: "rgba(122,138,56,.30)", Air: "rgba(111,147,174,.30)", Water: "rgba(117,73,126,.32)" };
+  let s = `<svg class="wheel" viewBox="0 0 340 340" role="img" aria-label="Birth chart wheel"><circle cx="${C}" cy="${C}" r="${R1}" fill="rgba(30,12,20,.55)" stroke="#d9b45e" stroke-width="1.5"/>`;
+  for (let i = 0; i < 12; i++) {
+    const a0 = i * 30, a1 = a0 + 30, [x0, y0] = xy(a0, R1), [x1, y1] = xy(a1, R1), [x2, y2] = xy(a1, R2), [x3, y3] = xy(a0, R2);
+    s += `<path d="M${x0.toFixed(1)} ${y0.toFixed(1)}A${R1} ${R1} 0 0 0 ${x1.toFixed(1)} ${y1.toFixed(1)}L${x2.toFixed(1)} ${y2.toFixed(1)}A${R2} ${R2} 0 0 1 ${x3.toFixed(1)} ${y3.toFixed(1)}Z" fill="${ELC[SIGN[i].element]}" stroke="rgba(217,180,94,.55)" stroke-width=".8"/>`;
+    const [gx, gy] = xy(a0 + 15, (R1 + R2) / 2);
+    s += `<text x="${gx.toFixed(1)}" y="${(gy + 6).toFixed(1)}" text-anchor="middle" font-size="17" fill="#f6e0a0">${SIGN[i].glyph}</text>`;
+  }
+  s += `<circle cx="${C}" cy="${C}" r="${R2}" fill="none" stroke="#d9b45e" stroke-width="1"/><circle cx="${C}" cy="${C}" r="${R3 - 26}" fill="none" stroke="rgba(217,180,94,.45)" stroke-width=".8"/>`;
+  if (ch.asc != null) {
+    const [ax, ay] = xy(ch.asc, R1 + 2), [dx, dy] = xy(ch.asc + 180, R1 + 2);
+    s += `<line x1="${ax.toFixed(1)}" y1="${ay.toFixed(1)}" x2="${dx.toFixed(1)}" y2="${dy.toFixed(1)}" stroke="#f6e0a0" stroke-width="1.2"/><text x="${(ax + 2).toFixed(1)}" y="${(ay - 6).toFixed(1)}" font-size="11" fill="#f6e0a0" font-family="IM Fell English SC, Georgia, serif">ASC</text>`;
+    const [mx, my] = xy(ch.mc, R1 + 2), [ix, iy] = xy(ch.mc + 180, R1 + 2);
+    s += `<line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${ix.toFixed(1)}" y2="${iy.toFixed(1)}" stroke="rgba(246,224,160,.55)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  }
+  // planets, nudged apart when they sit close together
+  const pts = ch.placements.map(p => ({ p, lon: p.lon })).sort((a, b) => a.lon - b.lon);
+  pts.forEach((o, i) => { o.r = R3; if (i && Math.abs(o.lon - pts[i - 1].lon) < 9) o.r = pts[i - 1].r === R3 ? R3 - 20 : R3; });
+  pts.forEach(o => {
+    const [px, py] = xy(o.lon, o.r), [tx, ty] = xy(o.lon, R2);
+    s += `<line x1="${tx.toFixed(1)}" y1="${ty.toFixed(1)}" x2="${xy(o.lon, R2 - 7)[0].toFixed(1)}" y2="${xy(o.lon, R2 - 7)[1].toFixed(1)}" stroke="#f6e0a0" stroke-width="1.2"/>`;
+    s += `<text x="${px.toFixed(1)}" y="${(py + 6).toFixed(1)}" text-anchor="middle" font-size="17" fill="#fbf3e2"><title>${o.p.label} in ${SIGN[o.p.sign].name}</title>${o.p.glyph}</text>`;
+  });
+  return s + `<text x="${C}" y="${C + 5}" text-anchor="middle" font-size="12" fill="#e6d6b2" font-family="IM Fell English SC, Georgia, serif">${ch.asc != null ? "" : "noon chart"}</text></svg>`;
+}
+let COSMIC_DECK = [];
+function renderCosmic(p) {
+  const ch = computeChart(p), P = ch.placements, sun = P[0], moon = P[1];
+  const who = p.name ? `${esc(p.name)}'s` : "Your";
+  const born = new Date(p.date + "T12:00:00").toLocaleDateString([], { year: "numeric", month: "long", day: "numeric" });
+  const big = [
+    { k: "Sun", glyph: sun.glyph, sign: SIGN[sun.sign], line: `At your core you are ${SIGN[sun.sign].core}.`, card: DECK[SIGN[sun.sign].card] },
+    { k: "Moon", glyph: moon.glyph, sign: SIGN[moon.sign], line: moon.uncertain ? `Your moon was moving from ${SIGN[moon.uncertain[0]].name} into ${SIGN[moon.uncertain[1]].name} on the day you were born, so it depends on your birth time. In ${SIGN[moon.sign].name}, you'd need ${SIGN[moon.sign].need}.` : `Emotionally, you need ${SIGN[moon.sign].need}.`, card: DECK[SIGN[moon.sign].card] },
+    ch.asc != null ? { k: "Rising", glyph: "↑", sign: SIGN[ch.ascSign], line: `People first meet you as ${SIGN[ch.ascSign].mask}.`, card: DECK[SIGN[ch.ascSign].card] } : null
+  ].filter(Boolean);
+  const els = ["Fire", "Earth", "Air", "Water"], modes = ["Cardinal", "Fixed", "Mutable"];
+  const topEl = els.slice().sort((a, b) => (ch.elements[b] || 0) - (ch.elements[a] || 0))[0];
+  const EL_LINE = { Fire: "Fire leads your chart: you run on passion, courage and momentum.", Earth: "Earth leads your chart: you're grounded, practical and steady.", Air: "Air leads your chart: you live in ideas, words and connection.", Water: "Water leads your chart: you feel deeply and trust your intuition." };
+  COSMIC_DECK = [];
+  if (ch.asc != null) COSMIC_DECK.push({ id: decanCard(ch.asc).id, pos: { t: `Rising in ${SIGN[ch.ascSign].name}`, d: `${fmtDeg(ch.asc % 30)}, how you meet the world` } });
+  P.forEach(pl => COSMIC_DECK.push({ id: decanCard(pl.lon).id, pos: { t: `${pl.label} in ${SIGN[pl.sign].name}`, d: `${fmtDeg(pl.deg)}${pl.retro ? ", retrograde" : ""}: ${pl.rules}` } }));
+  $("#cosmicResult").innerHTML = `
+<div class="cosmic-head"><p class="eyebrow">${esc(born)}${p.unknownTime ? "" : " · " + esc(p.time)} · ${esc(p.place.label)}</p><h2>${who} cosmic profile</h2></div>
+<div class="bigthree">${big.map(b => `<article class="panel big"><p class="big-k">${b.glyph} ${b.k}</p><h3>${b.sign.glyph} ${b.sign.name}</h3><p>${esc(b.line)}</p><p class="hint">${b.sign.element} · ${b.sign.mode} · ruled by ${b.sign.ruler} · tarot: <button type="button" class="link" data-card="${b.card.id}">${b.card.name}</button></p></article>`).join("")}</div>
+${p.unknownTime ? `<p class="hint center-t">Add your birth time to see your rising sign and houses.</p>` : ""}
+<section class="panel wheel-panel"><div class="wheel-wrap">${chartWheel(ch)}</div>
+<div class="balance"><p class="vlabel">Your elements</p>${els.map(e => `<div class="bar"><span>${e}</span><i style="--w:${((ch.elements[e] || 0) / 7 * 100).toFixed(0)}%"></i><b>${ch.elements[e] || 0}</b></div>`).join("")}
+<p class="vlabel">Your modes</p>${modes.map(m => `<div class="bar"><span>${m}</span><i style="--w:${((ch.modes[m] || 0) / 7 * 100).toFixed(0)}%"></i><b>${ch.modes[m] || 0}</b></div>`).join("")}
+<p class="hint">${EL_LINE[topEl]} Counted from the Sun through Saturn.</p></div></section>
+<section class="panel"><h2>Your placements</h2><div class="ptable" role="table" aria-label="Planet placements">
+${ch.asc != null ? `<div class="prow" role="row"><span role="cell" class="pg">↑</span><span role="cell"><b>Rising</b></span><span role="cell">${SIGN[ch.ascSign].glyph} ${SIGN[ch.ascSign].name} ${fmtDeg(ch.asc % 30)}</span><span role="cell" class="ph">1st house</span></div>` : ""}
+${P.map(pl => `<div class="prow" role="row"><span role="cell" class="pg">${pl.glyph}</span><span role="cell"><b>${pl.label}</b>${pl.retro ? ' <abbr title="retrograde">℞</abbr>' : ""}</span><span role="cell">${SIGN[pl.sign].glyph} ${SIGN[pl.sign].name} ${fmtDeg(pl.deg)}</span><span role="cell" class="ph">${pl.house != null ? ORDINAL[pl.house] + " house" : ""}</span><span role="cell" class="pmean">${esc(pl.label)} shapes ${pl.rules}. In ${SIGN[pl.sign].name}, that looks ${SIGN[pl.sign].mask}${pl.house != null ? `, focused on ${HOUSES[pl.house]}` : ""}.</span></div>`).join("")}
+</div><p class="hint">Houses use the whole-sign system, counted from your rising sign.</p></section>
+<section class="panel"><h2>Your cosmic deck</h2><p>Every placement in your chart lines up with a tarot card, using the classic Golden Dawn pairing of each 10° slice of the zodiac with a numbered card. Tap a card to read it.</p>
+<ul class="cdeck">${COSMIC_DECK.map((c, i) => `<li><button type="button" class="cdcard" data-i="${i}"><span class="libface" data-id="${c.id}"></span><span class="libname">${esc(c.pos.t)}</span><span class="libkw">${esc(DECK[c.id].name)}</span></button></li>`).join("")}</ul></section>
+<div class="row"><button class="btn ghost" type="button" id="cEdit">Edit birth details</button><button class="btn ghost" type="button" id="cDelete">Delete profile</button><button class="btn primary" type="button" data-go="ask">Ask the cards</button></div>
+<p class="hint center-t">Your birth details and chart stay on this device. Nothing is sent anywhere.</p>`;
+  $$("#cosmicResult .libface").forEach(el => { if (libObs) libObs.observe(el); else el.innerHTML = ART.face(DECK[+el.dataset.id]); });
+}
+$("#cosmicResult").addEventListener("click", e => {
+  const c = e.target.closest(".cdcard"); if (c) { openViewer(COSMIC_DECK, +c.dataset.i); return; }
+  const k = e.target.closest("[data-card]"); if (k) { openViewer([{ id: +k.dataset.card, both: true }], 0); return; }
+  if (e.target.closest("#cEdit")) { cosmicEditing = true; enterCosmic(); window.scrollTo(0, 0); return; }
+  const d = e.target.closest("#cDelete");
+  if (d) {
+    if (!d.classList.contains("armed")) { d.classList.add("armed"); d.textContent = "Tap again to delete"; setTimeout(() => { d.classList.remove("armed"); d.textContent = "Delete profile"; }, 3000); return; }
+    try { localStorage.removeItem(CKEY); } catch (err) { /* ignore */ }
+    toast("Cosmic profile deleted"); cosmicEditing = false; enterCosmic();
+  }
+});
+function renderCosmicSummary() {
+  const p = cosmicProfile(), el = $("#cosmicSummary");
+  if (!p) { el.innerHTML = `<p class="eyebrow">New · Astrology</p><h3>Meet your cosmic profile</h3><p>Add your birth date, time and city to see your sun, moon and rising signs, your birth chart and the tarot card behind every planet.</p><div class="row left"><button class="btn ghost small" type="button" data-go="cosmic">Create my cosmic profile</button></div>`; return; }
+  let ch; try { ch = computeChart(p); } catch (e) { el.innerHTML = ""; return; }
+  const P = ch.placements;
+  el.innerHTML = `<p class="eyebrow">${p.name ? esc(p.name) + "'s" : "Your"} big three</p><div class="b3">
+<span><small>☉︎ Sun</small>${SIGN[P[0].sign].glyph} ${SIGN[P[0].sign].name}</span><span><small>☽︎ Moon</small>${SIGN[P[1].sign].glyph} ${SIGN[P[1].sign].name}</span>${ch.asc != null ? `<span><small>↑ Rising</small>${SIGN[ch.ascSign].glyph} ${SIGN[ch.ascSign].name}</span>` : ""}</div>
+<div class="row left"><button class="btn ghost small" type="button" data-go="cosmic">See your chart and cosmic deck</button></div>`;
+}
+function renderMoonToday() {
+  const now = new Date(), m = moonInfo(now);
+  let msign = "";
+  try { msign = SIGN[Math.floor(norm(Astronomy.EclipticGeoMoon(Astronomy.MakeTime(now)).lon) / 30)].name; } catch (e) { /* ignore */ }
+  const ms = moonSpreadNow();
+  $("#moonToday").innerHTML = `<p class="eyebrow">The moon today</p><h3>${moonName(m.name)}${msign ? ` in ${msign}` : ""}</h3><p>${Math.round(m.illum * 100)}% lit. ${MOON_TEXT[m.idx].charAt(0).toUpperCase() + MOON_TEXT[m.idx].slice(1)}.</p>${ms ? `<div class="row left"><button class="btn ghost small" type="button" id="moonSpreadBtn" data-spread="${ms}">Try the ${SPREADS[ms].name}</button></div>` : ""}`;
+}
+$("#moonToday").addEventListener("click", e => {
+  const b = e.target.closest("#moonSpreadBtn"); if (!b) return;
+  go("ask"); renderSpreadOpts(b.dataset.spread);
+});
+
 $("#soundBtn").addEventListener("click", () => setSound(!Sound.on));
 $("#setSound").addEventListener("change", e => setSound(e.target.checked));
 $("#setVibe").checked = Vibe.on;
