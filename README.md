@@ -27,6 +27,7 @@ An [amaris ct](https://amarisct.github.io/Amaris/) project.
 
 - `index.html`: the whole app, built from `src/`
 - `manifest.webmanifest`, `sw.js`, `icons/`: home-screen install and offline support
+- `cards/`: one page per card (78), plus `cards/index.html`, for people searching card meanings; `sitemap.xml` lists every page for Google
 - `src/`: `deck.js` meanings, `question.js` question reading and answers, `art.js` card art, `app.js` app logic, `style.css`, `index.template.html`
 
-To change the app, edit files in `src/`, then run `python3 build.py` to rebuild `index.html`.
+To change the app, edit files in `src/`, then run `python3 build.py` to rebuild `index.html`, and `node src/make-card-pages.js` to rebuild the card pages and sitemap.

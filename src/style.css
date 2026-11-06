@@ -444,6 +444,8 @@ body.short .answer .more, body.short .answer .links, body.short .summary, body.s
 .libcard:hover .libface, .libcard:focus-visible .libface { transform: translateY(-4px); }
 .libname { font-family: var(--sc); font-size: 14px; letter-spacing: .03em; line-height: 1.2; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
 .libkw { font-size: 13px; font-style: italic; color: #e6d6b2; line-height: 1.2; text-shadow: 0 1px 8px rgba(30, 10, 15, .8); }
+.pagelink { font-family: var(--sc); letter-spacing: .04em; color: var(--gold-hi); }
+.instr a { color: var(--gold-hi); }
 .foot .link { font-family: var(--sc); letter-spacing: .05em; }
 
 /* ---------- battery saver ---------- */

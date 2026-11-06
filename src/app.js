@@ -878,6 +878,7 @@ function viewerBody(item) {
     h += `<p class="vlabel">Upright</p><p class="kw">${k.up}</p><p>${k.upM}</p><p class="vlabel">Reversed</p><p class="kw">${k.rv}</p><p>${k.rvM}</p>`;
     if (k.suit) h += `<p class="hint">${SUITS[k.suit].name} are the suit of ${SUITS[k.suit].element.toLowerCase()}: ${SUITS[k.suit].domain}.${k.rank <= 10 ? ` As a ${RANKS[k.rank - 1].toLowerCase()}, it carries the energy of ${RANK_THEME[k.rank]}.` : ""}</p>`;
     else h += `<p class="hint">The Major Arcana mark big life lessons and turning points, more than day-to-day events.</p>`;
+    h += `<p><a class="pagelink" href="cards/${k.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}/">Read the full ${esc(k.name)} page ›</a></p>`;
   } else {
     h += `<p class="kw">${rev ? k.rv : k.up}</p><p>${rev ? k.rvM : k.upM}</p>${lens ? `<p class="lens"><b>For ${A.topic.label}:</b> ${lens}</p>` : ""}`;
   }
